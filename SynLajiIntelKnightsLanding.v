@@ -7,7 +7,7 @@
 module SynLajiIntelKnightsLanding(
     clk, rst_n, en, regfile_req_dbg, datamem_addr_dbg,
     pc_dbg, regfile_data_dbg, datamem_data_dbg, display,
-    halt, is_jump, is_branch, branched
+    halt, jumped, is_branch, branched
 );
     parameter ProgPath = "C:/.Xilinx/benchmark.hex";
     input clk, rst_n, en;
@@ -17,7 +17,7 @@ module SynLajiIntelKnightsLanding(
     output [31:0] regfile_data_dbg;
     output [31:0] datamem_data_dbg;
     output [31:0] display;
-    output halt, is_jump, is_branch, branched;
+    output halt, jumped, is_branch, branched;
 
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
     wire [31:0] inst;
@@ -43,6 +43,7 @@ module SynLajiIntelKnightsLanding(
     wire [`MUX_RF_REQW_BIT - 1:0] mux_regfile_req_w;
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     wire [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
+    wire load_pc = jumped || branched;
     wire [`IM_ADDR_BIT - 1:0] pc_new = is_jump || branched ? wtg_pc_new : pc_4;
     wire syscall_en;
     assign pc_dbg = {20'd0, pc, 2'd0};
@@ -50,49 +51,49 @@ module SynLajiIntelKnightsLanding(
     always @(*) begin
         case (mux_regfile_req_a)
             `MUX_RF_REQA_RS:
-                regfile_req_a <= rs;
+                regfile_req_a = rs;
             `MUX_RF_REQA_SYS:
-                regfile_req_a <= 5'd2;
+                regfile_req_a = 5'd2;
             default:
-                regfile_req_a <= 5'd0;
+                regfile_req_a = 5'd0;
         endcase
         case (mux_regfile_req_b)
             `MUX_RF_REQB_RT:
-                regfile_req_b <= rt;
+                regfile_req_b = rt;
             `MUX_RF_REQB_SYS:
-                regfile_req_b <= 5'd4;
+                regfile_req_b = 5'd4;
             default:
-                regfile_req_b <= 5'd0;
+                regfile_req_b = 5'd0;
         endcase
         case (mux_regfile_req_w)
             `MUX_RF_REQW_RD:
-                regfile_req_w <= rd;
+                regfile_req_w = rd;
             `MUX_RF_REQW_RT:
-                regfile_req_w <= rt;
+                regfile_req_w = rt;
             `MUX_RF_REQW_31:
-                regfile_req_w <= 5'd31;
+                regfile_req_w = 5'd31;
             default:
-                regfile_req_w <= 5'd0;
+                regfile_req_w = 5'd0;
         endcase
         case (mux_regfile_data_w)
             `MUX_RF_DATAW_ALU:
-                regfile_data_w <= alu_data_res;
+                regfile_data_w = alu_data_res;
             `MUX_RF_DATAW_DM:
-                regfile_data_w <= datamem_data;
+                regfile_data_w = datamem_data;
             `MUX_RF_DATAW_PC4:
-                regfile_data_w <= pc_4;
+                regfile_data_w = pc_4;
             default:
-                regfile_data_w <= 32'd0;
+                regfile_data_w = 32'd0;
         endcase
         case (mux_alu_data_y)
             `MUX_ALU_DATAY_RFB:
-                alu_data_y <= regfile_data_b;
+                alu_data_y = regfile_data_b;
             `MUX_ALU_DATAY_EXTS:
-                alu_data_y <= ext_out_sign;
+                alu_data_y = ext_out_sign;
             `MUX_ALU_DATAY_EXTZ:
-                alu_data_y <= ext_out_zero;
+                alu_data_y = ext_out_zero;
             default:
-                alu_data_y <= 32'd0;
+                alu_data_y = 32'd0;
         endcase
     end
 
@@ -100,6 +101,7 @@ module SynLajiIntelKnightsLanding(
         .clk(clk),
         .rst_n(rst_n),
         .en(en),
+        .load_pc(load_pc),
         .pc_new(pc_new),
         .pc(pc),
         .pc_4(pc_4)
@@ -146,6 +148,8 @@ module SynLajiIntelKnightsLanding(
         .data_y(regfile_data_b),
         .pc_4(pc_4),
         .pc_new(wtg_pc_new),
+        .jumped(jumped),
+        .is_branch(is_branch),
         .branched(branched)
     );
     CmbALU vALU(
@@ -191,8 +195,6 @@ module SynLajiIntelKnightsLanding(
         .mux_regfile_req_b(mux_regfile_req_b),
         .mux_regfile_req_w(mux_regfile_req_w),
         .mux_regfile_data_w(mux_regfile_data_w),
-        .mux_alu_data_y(mux_alu_data_y),
-        .is_jump(is_jump),
-        .is_branch(is_branch)
+        .mux_alu_data_y(mux_alu_data_y)
     );
 endmodule

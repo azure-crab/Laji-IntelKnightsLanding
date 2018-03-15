@@ -8,7 +8,7 @@ module CmbControl(
     opcode, rt, funct,
     op_wtg, w_en_regfile, op_alu, op_datamem, w_en_datamem, syscall_en,
     mux_regfile_req_a, mux_regfile_req_b, mux_regfile_req_w, mux_regfile_data_w, 
-    mux_alu_data_y, is_jump, is_branch
+    mux_alu_data_y
 );
     input [5:0] opcode;
     input [4:0] rt;
@@ -24,8 +24,6 @@ module CmbControl(
     output reg [`MUX_RF_REQW_BIT - 1:0] mux_regfile_req_w;
     output reg [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     output reg [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
-    output reg is_jump;     // 1 if the current instruction is a jump instruction
-    output reg is_branch;   // 1 if the current instruction is a branch instraction
 
     // when its syscall, both of these two mux signal will be 1 (see Core.vh)
     assign mux_regfile_req_a = syscall_en;
@@ -42,8 +40,6 @@ module CmbControl(
         mux_regfile_req_w = `MUX_RF_REQW_RT;
         mux_regfile_data_w = `MUX_RF_DATAW_ALU;
         mux_alu_data_y = `MUX_ALU_DATAY_EXTS;
-        is_jump = 0;
-        is_branch = 0;
         case(opcode)
             6'b000000:  begin 
                 mux_regfile_req_w   = `MUX_RF_REQW_RD;
@@ -58,7 +54,6 @@ module CmbControl(
                     6'b000111:  op_alu = `ALU_OP_SRAV;      // srav
                     6'b001000:  begin                       // jr
                         op_wtg = `WTG_OP_J32;
-                        is_jump = 1;
                         w_en_regfile = 0;
                     end
                     6'b001100:  begin                       // syscall
@@ -81,19 +76,20 @@ module CmbControl(
             6'b000001:  begin
                 w_en_regfile = 0;
                 case(rt[0])
-                    1'b0: begin op_wtg = `WTG_OP_BLTZ;  is_branch = 1; end  // bltz
-                    1'b1: begin op_wtg = `WTG_OP_BGEZ;  is_branch = 1; end  // bgez
+                    1'b0: begin op_wtg = `WTG_OP_BLTZ; end  // bltz
+                    // no longer supported
+                    // 1'b1: begin op_wtg = `WTG_OP_BGEZ; end  // bgez
                 endcase
             end
-            6'b000010:  begin   op_wtg = `WTG_OP_J26;   is_jump   = 1; w_en_regfile = 0; end    // j
-            6'b000011:  begin   op_wtg = `WTG_OP_J26;   is_jump   = 1;                          // jal
+            6'b000010:  begin   op_wtg = `WTG_OP_J26;  w_en_regfile = 0; end    // j
+            6'b000011:  begin   op_wtg = `WTG_OP_J26;                           // jal
                 mux_regfile_req_w = `MUX_RF_REQW_31;
                 mux_regfile_data_w = `MUX_RF_DATAW_PC4;
             end
-            6'b000100:  begin   op_wtg = `WTG_OP_BEQ;   is_branch = 1; w_en_regfile = 0; end    // beq
-            6'b000101:  begin   op_wtg = `WTG_OP_BNE;   is_branch = 1; w_en_regfile = 0; end    // bne
-            6'b000110:  begin   op_wtg = `WTG_OP_BLEZ;  is_branch = 1; w_en_regfile = 0; end    // blez
-            6'b000111:  begin   op_wtg = `WTG_OP_BGTZ;  is_branch = 1; w_en_regfile = 0; end    // bgtz
+            6'b000100:  begin   op_wtg = `WTG_OP_BEQ;  w_en_regfile = 0; end    // beq
+            6'b000101:  begin   op_wtg = `WTG_OP_BNE;  w_en_regfile = 0; end    // bne
+            // 6'b000110:  begin   op_wtg = `WTG_OP_BLEZ; w_en_regfile = 0; end    // blez
+            // 6'b000111:  begin   op_wtg = `WTG_OP_BGTZ; w_en_regfile = 0; end    // bgtz
 
             6'b001000:          op_alu = `ALU_OP_ADD;       // addi
             6'b001001:          op_alu = `ALU_OP_ADD;       // addiu

@@ -43,21 +43,21 @@ module CmbWTG_tb();
         data_x <= 'h2000;
         data_y <= 'h2000;
 
-        #50;
-        op = `WTG_OP_BLEZ;
-        data_x <= -1;
-        #5;
-        data_x <= 0;
-        #5;
-        data_x <= 1;
+        // #50;
+        // op = `WTG_OP_BLEZ;
+        // data_x <= -1;
+        // #5;
+        // data_x <= 0;
+        // #5;
+        // data_x <= 1;
 
-        #50;
-        op = `WTG_OP_BGTZ;
-        data_x <= -1;
-        #5;
-        data_x <= 0;
-        #5;
-        data_x <= 1;
+        // #50;
+        // op = `WTG_OP_BGTZ;
+        // data_x <= -1;
+        // #5;
+        // data_x <= 0;
+        // #5;
+        // data_x <= 1;
 
         #50;
         op = `WTG_OP_BLTZ;
@@ -67,12 +67,12 @@ module CmbWTG_tb();
         #5;
         data_x <= 1;
 
-        #50;
-        op = `WTG_OP_BGEZ;
-        data_x <= -1;
-        #5;
-        data_x <= 0;
-        #5;
-        data_x <= 1;
+        // #50;
+        // op = `WTG_OP_BGEZ;
+        // data_x <= -1;
+        // #5;
+        // data_x <= 0;
+        // #5;
+        // data_x <= 1;
     end
 endmodule
