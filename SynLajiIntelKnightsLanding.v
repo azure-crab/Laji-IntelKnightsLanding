@@ -31,7 +31,7 @@ module SynLajiIntelKnightsLanding(
     wire regfile_w_en;
     reg [31:0] regfile_data_w;  // combinatorial
     wire [`WTG_OP_BIT - 1:0] wtg_op;
-    wire [`IM_ADDR_BIT - 1:0] wtg_pc_new;
+    wire [`IM_ADDR_BIT - 1:0] pc_new;
     wire [`ALU_OP_BIT - 1:0] alu_op;
     reg [31:0] alu_data_y;      // combinatorial
     wire [31:0] alu_data_res;

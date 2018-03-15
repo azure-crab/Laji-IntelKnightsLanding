@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+`include "Core.vh"
 
 // Brief: Program Counter, sychronized
 // Description: Update program counter
@@ -19,6 +20,6 @@ module SynPC(clk, rst_n, en, load_pc, pc_new, pc, pc_4);
         if (!rst_n)
    		    pc = 0;
    	    else if (en)
-   		    pc = (load_pc) ? pc_new : pc_4;
+   		    pc = (load_pc) ? pc_new[`IM_ADDR_BIT - 1:0] : pc_4[`IM_ADDR_BIT - 1:0];
     end
 endmodule

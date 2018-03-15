@@ -30,7 +30,7 @@ module CmbControl(
     assign mux_regfile_req_b = syscall_en;
 
     always@(*) begin
-        op_wtg = `WTG_OP_J32;
+        op_wtg = `WTG_OP_NOP;
         op_alu = `ALU_OP_AND;
         op_datamem = `DM_OP_WD;  
         w_en_regfile = 1;
