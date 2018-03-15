@@ -25,9 +25,10 @@ module SynLajiIntelKnightsLanding(
     wire [4:0] rs, rt, rd, shamt;
     wire [15:0] imm16;
     wire [31:0] ext_out_sign, ext_out_zero;
-    wire regfile_w_en;
-    wire [31:0] regfile_data_a, regfile_data_b, regfile_data_v0, regfile_data_a0;
+    wire file_w_en;
+    wire [31:0] regfile_data_a, regfile_data_b;
     reg [4:0] regfile_req_a, regfile_req_b, regfile_req_w;    // combinatorial
+    wire regfile_w_en;
     reg [31:0] regfile_data_w;  // combinatorial
     wire [`WTG_OP_BIT - 1:0] wtg_op;
     wire [`IM_ADDR_BIT - 1:0] wtg_pc_new;
@@ -43,6 +44,7 @@ module SynLajiIntelKnightsLanding(
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     wire [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
     wire [`IM_ADDR_BIT - 1:0] pc_new = is_jump || branched ? wtg_pc_new : pc_4;
+    wire syscall_en;
     assign pc_dbg = {20'd0, pc, 2'd0};
 
     always @(*) begin
@@ -130,8 +132,8 @@ module SynLajiIntelKnightsLanding(
         .w_en(regfile_w_en),
         .req_dbg(regfile_req_dbg),
         .req_w(regfile_req_w),
-        .req_a(req_a),
-        .req_b(req_b),
+        .req_a(regfile_req_a),
+        .req_b(regfile_req_b),
         .data_dbg(regfile_data_dbg),
         .data_w(regfile_data_w),
         .data_a(regfile_data_a),
@@ -170,8 +172,8 @@ module SynLajiIntelKnightsLanding(
         .rst_n(rst_n),
         .en(en),
         .syscall_en(syscall_en),
-        .data_v0(regfile_data_v0),
-        .data_a0(regfile_data_a0),
+        .data_v0(regfile_data_a),
+        .data_a0(regfile_data_b),
         .display(display),
         .halt(halt)
     );
