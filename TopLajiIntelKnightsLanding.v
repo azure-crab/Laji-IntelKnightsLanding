@@ -148,7 +148,7 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
         .regfile_data_dbg(regfile_data_dbg),
         .datamem_data_dbg(datamem_data_dbg),
         .display(core_display),
-        .halt(core_halt),
+        .halted(core_halt),
         .jumped(core_is_jump),
         .is_branch(core_is_branch),
         .branched(core_branched)

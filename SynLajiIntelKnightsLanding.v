@@ -7,7 +7,7 @@
 module SynLajiIntelKnightsLanding(
     clk, rst_n, en, regfile_req_dbg, datamem_addr_dbg,
     pc_dbg, regfile_data_dbg, datamem_data_dbg, display,
-    halt, jumped, is_branch, branched
+    halted, jumped, is_branch, branched
 );
     parameter ProgPath = "C:/.Xilinx/benchmark.hex";
     input clk, rst_n, en;
@@ -17,7 +17,8 @@ module SynLajiIntelKnightsLanding(
     output [31:0] regfile_data_dbg;
     output [31:0] datamem_data_dbg;
     output [31:0] display;
-    output halt, jumped, is_branch, branched;
+    output halted, jumped, is_branch, branched;
+    assign pc_dbg = {20'd0, pc, 2'd0};
 
 // IF
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
@@ -43,14 +44,14 @@ module SynLajiIntelKnightsLanding(
 
 // IF/ID
 // pc_4, inst
-
+    wire[`IM_ADDR_BIT - 1:0] pc_4_if_id;
+    wire[31:0] inst_if_id;
+    // module Pipline_IF_ID(pc_4, inst, pc_4_id, pc_4_if_id, inst_if_id);
 
 // ID
     wire [5:0] opcode, funct;
     wire [4:0] rs, rt, rd, shamt;
     wire [15:0] imm16;
-
-    assign pc_dbg = {20'd0, pc, 2'd0};
 
     CmbDecoder vDec(
         .inst(inst),
@@ -98,6 +99,7 @@ module SynLajiIntelKnightsLanding(
         .mux_alu_data_y(mux_alu_data_y)
     );
 
+    reg [4:0] regfile_req_a, regfile_req_b, regfile_req_w;    // combinatorial
     always @(*) begin
         case (mux_regfile_req_a)
             `MUX_RF_REQA_RS:
@@ -127,7 +129,6 @@ module SynLajiIntelKnightsLanding(
         endcase
     end
     wire [31:0] regfile_data_a, regfile_data_b;
-    reg [4:0] regfile_req_a, regfile_req_b, regfile_req_w;    // combinatorial
     reg [31:0] regfile_data_w;  // combinatorial
     SynRegFile vRF(
         .clk(clk),
@@ -168,7 +169,42 @@ module SynLajiIntelKnightsLanding(
     end
 
 // ID/EX
-// 
+// DEC.shamt
+// EXT.Sext, Zext
+// CTL.wtg_op, alu_op, mux_alu_data_y, datamem_op, datamem_w_en, syscall_en, mux_regfile_data_w(will be split later)
+// (redirect) CTL.mux_ex_regfile_data_a, mux_ex_regfile_data_b
+//      for now just treat read DM -> rt & write rt-> DM as load-use
+// RF.a, b
+// MUX_RF_REQ_W regfile_req_w
+    wire [4:0] shamt_id_ex;
+    wire [31:0] ext_out_sign_id_ex, ext_out_zero_id_ex;
+    wire [`WTG_OP_BIT - 1:0] wtg_op_id_ex;
+    wire [`ALU_OP_BIT - 1:0] alu_op_id_ex;
+    wire [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y_id_ex;
+    wire [`DM_OP_BIT - 1:0] datamem_op_id_ex;
+    wire datamem_w_en_id_ex;
+    wire syscall_en_id_ex;
+    wire [4:0] regfile_req_w_id_ex;    // combinatorial
+    wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
+//    wire [] mux_ex_regfile_data_a, mux_ex_regfile_data_b; // for redirect
+    wire [31:0] regfile_data_a_id_ex, regfile_data_b_id_ex;
+
+// module Pipline_ID_EX(shamt, shamt_id_ex,
+//                      ext_out_sign,  ext_out_sign_id_ex,
+//                      ext_out_zero,  ext_out_zero_id_ex,
+//                      wtg_op, wtg_op_id_ex,
+//                      alu_op, alu_op_id_ex,
+//                      mux_alu_data_y,  mux_alu_data_y_id_ex,
+//                      datamem_op,      datamem_op_id_ex,
+//                      datamem_w_en,    datamem_wen_id_ex,
+//                      syscall_en,      syscall_en_id_ex,
+//                      regfile_req_w,   regfile_req_w_id_ex,
+//                      mux_regfile_data_w,    mux_regfile_data_w_id_ex,        // should be split later
+//                      mux_ex_regfile_data_a, mux_ex_regfile_data_a_id_ex,
+//                      mux_ex_regfile_data_b, mux_ex_regfile_data_b_id_ex,
+//                      regfile_data_a,        regfile_data_a_id_ex,
+//                      regfile_data_b,        regfile_data_b_id_ex
+//                      )
 
 // EX
     CmbWTG vWTG(
@@ -204,6 +240,25 @@ module SynLajiIntelKnightsLanding(
     );
 
 // EX/DM
+// ALU.alu_data_res
+// RF.regfile_data_b
+// SYS.halt
+// MUX.regfile_pre_data_w
+// regfile_req_w
+    wire [31:0] alu_data_res_ex_dm;
+    wire [31:0] regfile_pre_data_w_ex_dm;
+    wire [31:0] regfile_data_b_ex_dm;
+    wire halt_ex_dm;
+    wire [4:0] regfile_req_w_ex_dm;
+    // always @(*) begin
+        // get regfile_pre_data_w        
+    // end
+    // module Pipline_EX_DM(alu_data_res, alu_data_res_ex_dm,
+    //                      regfile_pre_data_w, regfile_pre_data_w_ex_dm,
+    //                      regfile_data_b, regfile_data_b_ex_dm,
+    //                      regfile_req_w, regfile_req_w_ex_dm,
+    //                      halt, halt_ex_dm);
+    // endmodule
 
 // DM
     wire [31:0] datamem_data;
@@ -221,6 +276,21 @@ module SynLajiIntelKnightsLanding(
     );
 
 // DM/WB
+// MUX.regfile_data_w
+// regfile_req_w
+    // always @(*) begin
+        // get regfile_data_w
+    // end
+    wire halt_dm_wb;
+    wire [4:0] regfile_req_w_dm_wb;
+    wire [31:0] regfile_data_w_dm_wb;
+    // module Pipline_DM_WB(halt_ex_dm, halt_dm_wb,
+    //                      regfile_req_w, regfile_req_w_dm_wb,
+    //                      regfile_data_w, regfile_data_w_dm_wb);
+    // endmodule
 
 // WB
+    assign halted = halt_dm_wb;
+    wire [4:0] regfile_req_w_wb = regfile_req_w_dm_wb;
+    wire [31:0] regfile_data_w_wb = regfile_data_w_dm_wb;
 endmodule
