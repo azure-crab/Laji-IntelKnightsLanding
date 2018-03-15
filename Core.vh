@@ -69,14 +69,31 @@
 // Register $ra
 `define MUX_RF_REQW_31      `MUX_RF_REQW_BIT'h2
 
-// Multiplexer.RegisterFile.data_requested_to_write
-`define MUX_RF_DATAW_BIT    2
+// Multiplexer.EX.redirect_regfile_dataA
+`define MUX_EX_REDIR_DATAA_BIT  2
+`define MUX_EX_REDIR_A_OLD      `MUX_EX_REDIR_DATAA_BIT'h0
+`define MUX_EX_REDIR_A_EX       `MUX_EX_REDIR_DATAA_BIT'h1
+`define MUX_EX_REDIR_A_DM       `MUX_EX_REDIR_DATAA_BIT'h2
+
+// Multiplexer.EX.redirect_regfile_dataB
+`define MUX_EX_REDIR_DATAB_BIT  2
+`define MUX_EX_REDIR_B_OLD      `MUX_EX_REDIR_DATAB_BIT'h0
+`define MUX_EX_REDIR_B_EX       `MUX_EX_REDIR_DATAB_BIT'h1
+`define MUX_EX_REDIR_B_DM       `MUX_EX_REDIR_DATAB_BIT'h2
+
+// Multiplexer.RegisterFile.pre_data_requested_to_write
+`define MUX_RF_PRE_DATAW_BIT    1
 // Output of ALU
-`define MUX_RF_DATAW_ALU    `MUX_RF_DATAW_BIT'h0
+`define MUX_RF_DATAW_ALU    `MUX_RF_PRE_DATAW_BIT'h0
+// PC + 4
+`define MUX_RF_DATAW_PC4    `MUX_RF_PRE_DATAW_BIT'h1
+
+// Multiplexer.RegisterFile.data_requested_to_write
+`define MUX_RF_DATAW_BIT    1
+// Output from EX
+`define MUX_RF_DATAW_EX     `MUX_RF_DATAW_BIT'h0
 // Output of DataMem
 `define MUX_RF_DATAW_DM     `MUX_RF_DATAW_BIT'h1
-// PC + 4
-`define MUX_RF_DATAW_PC4    `MUX_RF_DATAW_BIT'h2
 
 // Multiplexer.ArithmeticLogicUnit.data_y
 `define MUX_ALU_DATAY_BIT   2

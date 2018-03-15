@@ -78,7 +78,9 @@ module SynLajiIntelKnightsLanding(
     wire [`MUX_RF_REQA_BIT - 1:0] mux_regfile_req_a;
     wire [`MUX_RF_REQB_BIT - 1:0] mux_regfile_req_b;    
     wire [`MUX_RF_REQW_BIT - 1:0] mux_regfile_req_w;
-    wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_pre_data_w;
+    wire [`MUX_EX_REDIR_DATAA_BIT - 1:0] mux_redirected_regfile_data_a;
+    wire [`MUX_EX_REDIR_DATAB_BIT - 1:0] mux_redirected_regfile_data_b;
+    wire [`MUX_RF_PRE_DATAW_BIT - 1:0] mux_regfile_pre_data_w;
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     wire [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
     CmbControl vCtl(
@@ -131,7 +133,6 @@ module SynLajiIntelKnightsLanding(
     wire [4:0] regfile_req_w_wb;
     wire [31:0] regfile_data_w_wb;
     wire [31:0] regfile_data_a, regfile_data_b;
-    reg [31:0] regfile_data_w;  // combinatorial
     SynRegFile vRF(
         .clk(clk),
         .rst_n(rst_n),
@@ -168,7 +169,8 @@ module SynLajiIntelKnightsLanding(
     wire syscall_en_id_ex;
     wire [4:0] regfile_req_w_id_ex;    // combinatorial
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_pre_data_w_id_ex, mux_regfile_data_w_id_ex;
-//    wire [] mux_ex_regfile_data_a_id_ex, mux_ex_regfile_data_b_id_ex; // for redirect
+    wire [`MUX_EX_REDIR_DATAA_BIT - 1:0] mux_redirected_regfile_data_a_id_ex; 
+    wire [`MUX_EX_REDIR_DATAB_BIT - 1:0] mux_redirected_regfile_data_b_id_ex;
     wire [31:0] regfile_data_a_id_ex, regfile_data_b_id_ex;
     wire regfile_w_en_id_ex;
 
@@ -192,10 +194,29 @@ module SynLajiIntelKnightsLanding(
 //                      )
 
 // -------------------------------- EX ---------------------------------
-
-// TODO: 
-//      add redirect logic: MUX_REFILE_DATA_A/B_ID_EX
-    wire [31:0] redirected_regfile_data_a, redirected_regfile_data_b;
+    reg [31:0] redirected_regfile_data_a, redirected_regfile_data_b;
+    wire [31:0] regfile_pre_data_w_ex_dm;
+    wire [31:0] regfile_data_w_dm_wb;
+    always @(*) begin
+        redirected_regfile_data_a = regfile_data_a_id_ex;
+        redirected_regfile_data_b = regfile_data_b_id_ex;
+        case(mux_redirected_regfile_data_a_id_ex)
+            `MUX_EX_REDIR_A_EX: 
+                redirected_regfile_data_a = regfile_pre_data_w_ex_dm;
+            `MUX_EX_REDIR_A_DM:
+                redirected_regfile_data_a = regfile_data_w_dm_wb;
+            // `MUX_EX_REDIR_A_OLD
+            default: ;
+        endcase
+        case(mux_redirected_regfile_data_b_id_ex)
+            `MUX_EX_REDIR_B_EX: 
+                redirected_regfile_data_b = regfile_pre_data_w_ex_dm;
+            `MUX_EX_REDIR_B_DM:
+                redirected_regfile_data_b = regfile_data_w_dm_wb;
+            // `MUX_EX_REDIR_B_OLD
+            default: ;
+        endcase 
+    end
 
     CmbWTG vWTG(
         .op(wtg_op_id_ex),
@@ -242,6 +263,16 @@ module SynLajiIntelKnightsLanding(
         .halt(halt)
     );
 
+    reg [31:0] regfile_pre_data_w;
+    always @(*) begin
+        regfile_pre_data_w = alu_data_res;
+        case (mux_regfile_pre_data_w_id_ex)
+            `MUX_RF_DATAW_PC4:
+                regfile_pre_data_w = pc_4_id_ex;
+            // MUX_RF_DATAW_ALU
+            default: ;
+        endcase
+    end
 // EX/DM
 // ALU.alu_data_res
 // RF.regfile_data_b
@@ -255,11 +286,7 @@ module SynLajiIntelKnightsLanding(
     wire halt_ex_dm;
     wire regfile_w_en_ex_dm;
     wire [4:0] regfile_req_w_ex_dm;
-    wire [31:0] regfile_pre_data_w_ex_dm;
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w_ex_dm;
-    // always @(*) begin
-        // get regfile_pre_data_w        
-    // end
     // module Pipline_EX_DM(alu_data_res, alu_data_res_ex_dm,
     //                      datamem_op, datamem_op_ex_dm
     //                      redirected_regfile_data_b, regfile_data_b_ex_dm,
@@ -288,13 +315,19 @@ module SynLajiIntelKnightsLanding(
 // DM/WB
 // MUX.regfile_data_w
 // regfile_req_w
-    // always @(*) begin
-        // get regfile_data_w
-    // end
+    reg [31:0] regfile_data_w;
+    always @(*) begin
+        regfile_data_w = regfile_pre_data_w_ex_dm;
+        case (mux_regfile_data_w_ex_dm)
+            `MUX_RF_DATAW_DM:
+                regfile_data_w = datamem_data;
+            // MUX_RF_DATAW_EX
+            default: ;
+        endcase
+    end
     wire halt_dm_wb;
     wire regfile_w_en_dm_wb;
     wire [4:0] regfile_req_w_dm_wb;
-    wire [31:0] regfile_data_w_dm_wb;
     // module Pipline_DM_WB(halt_ex_dm, halt_dm_wb,
     //                      regfile_w_en_ex_dm, regfile_w_en_dm_wb,
     //                      regfile_req_w, regfile_req_w_dm_wb,
