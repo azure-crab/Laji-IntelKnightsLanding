@@ -187,8 +187,8 @@ module SynLajiIntelKnightsLanding(
 //                      regfile_w_en,    regfile_w_en_id_ex,
 //                      mux_regfile_pre_data_w, mux_regfile_pre_data_w_id_ex,
 //                      mux_regfile_data_w,    mux_regfile_data_w_id_ex,
-//                      mux_ex_regfile_data_a, mux_ex_regfile_data_a_id_ex,
-//                      mux_ex_regfile_data_b, mux_ex_regfile_data_b_id_ex,
+//                      mux_redirected_regfile_data_a, mux_redirected_regfile_data_a_id_ex,
+//                      mux_redirected_regfile_data_a, mux_redirected_regfile_data_b_id_ex,
 //                      regfile_data_a,        regfile_data_a_id_ex,
 //                      regfile_data_b,        regfile_data_b_id_ex
 //                      )
