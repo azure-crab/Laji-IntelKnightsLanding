@@ -27,7 +27,7 @@ module SynLajiIntelKnightsLanding(
     wire [31:0] ext_out_sign, ext_out_zero;
     wire regfile_w_en;
     wire [31:0] regfile_data_a, regfile_data_b, regfile_data_v0, regfile_data_a0;
-    reg [4:0] regfile_req_w;    // combinatorial
+    reg [4:0] regfile_req_a, regfile_req_b, regfile_req_w;    // combinatorial
     reg [31:0] regfile_data_w;  // combinatorial
     wire [`WTG_OP_BIT - 1:0] wtg_op;
     wire [`IM_ADDR_BIT - 1:0] wtg_pc_new;
@@ -37,6 +37,8 @@ module SynLajiIntelKnightsLanding(
     wire [`DM_OP_BIT - 1:0] datamem_op;
     wire datamem_w_en;
     wire [31:0] datamem_data;
+    wire [`MUX_RF_REQA_BIT - 1:0] mux_regfile_req_a;
+    wire [`MUX_RF_REQB_BIT - 1:0] mux_regfile_req_b;    
     wire [`MUX_RF_REQW_BIT - 1:0] mux_regfile_req_w;
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     wire [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
@@ -44,6 +46,22 @@ module SynLajiIntelKnightsLanding(
     assign pc_dbg = {20'd0, pc, 2'd0};
 
     always @(*) begin
+        case (mux_regfile_req_a)
+            `MUX_RF_REQA_RS:
+                regfile_req_a <= rs;
+            `MUX_RF_REQA_SYS:
+                regfile_req_a <= 5'd2;
+            default:
+                regfile_req_a <= 5'd0;
+        endcase
+        case (mux_regfile_req_b)
+            `MUX_RF_REQB_RT:
+                regfile_req_b <= rt;
+            `MUX_RF_REQB_SYS:
+                regfile_req_b <= 5'd4;
+            default:
+                regfile_req_b <= 5'd0;
+        endcase
         case (mux_regfile_req_w)
             `MUX_RF_REQW_RD:
                 regfile_req_w <= rd;
@@ -112,14 +130,12 @@ module SynLajiIntelKnightsLanding(
         .w_en(regfile_w_en),
         .req_dbg(regfile_req_dbg),
         .req_w(regfile_req_w),
-        .req_a(rs),
-        .req_b(rt),
+        .req_a(req_a),
+        .req_b(req_b),
         .data_dbg(regfile_data_dbg),
         .data_w(regfile_data_w),
         .data_a(regfile_data_a),
-        .data_b(regfile_data_b),
-        .data_v0(regfile_data_v0),
-        .data_a0(regfile_data_a0)
+        .data_b(regfile_data_b)
     );
     CmbWTG vWTG(
         .op(wtg_op),
@@ -169,6 +185,8 @@ module SynLajiIntelKnightsLanding(
         .op_datamem(datamem_op),
         .w_en_datamem(datamem_w_en),
         .syscall_en(syscall_en),
+        .mux_regfile_req_a(mux_regfile_req_a),
+        .mux_regfile_req_b(mux_regfile_req_b),
         .mux_regfile_req_w(mux_regfile_req_w),
         .mux_regfile_data_w(mux_regfile_data_w),
         .mux_alu_data_y(mux_alu_data_y),

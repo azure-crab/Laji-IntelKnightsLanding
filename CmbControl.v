@@ -7,7 +7,8 @@
 module CmbControl(
     opcode, rt, funct,
     op_wtg, w_en_regfile, op_alu, op_datamem, w_en_datamem, syscall_en,
-    mux_regfile_req_w, mux_regfile_data_w, mux_alu_data_y, is_jump, is_branch
+    mux_regfile_req_a, mux_regfile_req_b, mux_regfile_req_w, mux_regfile_data_w, 
+    mux_alu_data_y, is_jump, is_branch
 );
     input [5:0] opcode;
     input [4:0] rt;
@@ -18,6 +19,8 @@ module CmbControl(
     output reg [`DM_OP_BIT - 1:0] op_datamem;
     output reg w_en_datamem;
     output reg syscall_en;
+    output reg [`MUX_RF_REQA_BIT - 1:0] mux_regfile_req_a;
+    output reg [`MUX_RF_REQB_BIT - 1:0] mux_regfile_req_b;    
     output reg [`MUX_RF_REQW_BIT - 1:0] mux_regfile_req_w;
     output reg [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     output reg [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
@@ -31,6 +34,10 @@ module CmbControl(
         w_en_regfile = 1;
         w_en_datamem = 0;
         syscall_en = 0;
+
+        // when its syscall, both of these two mux signal will be 1 (see Core.vh)
+        assign mux_regfile_req_a = syscall_en;
+        assign mux_regfile_req_b = syscall_en;
 
         mux_regfile_req_w = `MUX_RF_REQW_RT;
         mux_regfile_data_w = `MUX_RF_DATAW_ALU;

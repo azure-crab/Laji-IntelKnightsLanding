@@ -48,6 +48,16 @@
 `define DM_OP_UH            `DM_OP_BIT'h3
 `define DM_OP_WD            `DM_OP_BIT'h4
 
+// Multiplexer.RegisterFile.register_number_requested_to_read_a
+`define MUX_RF_REQA_BIT     2
+`define MUX_RF_REQA_RS      `MUX_RF_REQA_BIT'h0
+`define MUX_RF_REQA_SYS     `MUX_RF_REQA_BIT'h1 
+
+// Multiplexer.RegisterFile.register_number_requested_to_read_b
+`define MUX_RF_REQB_BIT     2
+`define MUX_RF_REQB_RT      `MUX_RF_REQB_BIT'h0
+`define MUX_RF_REQB_SYS     `MUX_RF_REQB_BIT'h1 
+
 // Multiplexer.RegisterFile.register_number_requested_to_write
 `define MUX_RF_REQW_BIT     2
 // Register $(rd)
