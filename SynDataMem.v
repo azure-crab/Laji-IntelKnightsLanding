@@ -127,7 +127,7 @@ module SynDataMem(clk, rst_n, en, op, w_en, addr_dbg, addr, data_in, data_dbg, d
         endcase
     end
 
-    always @(posedge clk) begin
+    always @(negedge clk) begin
         if(write_en_a) begin
             mem_a[eff_addr] <= write_data_a;
         end
