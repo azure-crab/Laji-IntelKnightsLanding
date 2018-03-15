@@ -19,33 +19,84 @@ module SynLajiIntelKnightsLanding(
     output [31:0] display;
     output halt, jumped, is_branch, branched;
 
+// IF
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
     wire [31:0] inst;
+    wire [`IM_ADDR_BIT - 1:0] pc_new;
+    wire load_pc = jumped || branched;
+    SynPC vPC(
+        .clk(clk),
+        .rst_n(rst_n),
+        .en(en),
+        .load_pc(load_pc),
+        .pc_new(pc_new),
+        .pc(pc),
+        .pc_4(pc_4)
+    );
+    CmbInstMem #(
+        .ProgPath(ProgPath)
+    ) vIM(
+        .addr(pc),
+        .inst(inst)
+    );
+
+
+// IF/ID
+// pc_4, inst
+
+
+// ID
     wire [5:0] opcode, funct;
     wire [4:0] rs, rt, rd, shamt;
     wire [15:0] imm16;
+
+    assign pc_dbg = {20'd0, pc, 2'd0};
+
+    CmbDecoder vDec(
+        .inst(inst),
+        .opcode(opcode),
+        .rs(rs),
+        .rt(rt),
+        .rd(rd),
+        .shamt(shamt),
+        .funct(funct),
+        .imm16(imm16)
+    );
+
     wire [31:0] ext_out_sign, ext_out_zero;
-    wire file_w_en;
-    wire [31:0] regfile_data_a, regfile_data_b;
-    reg [4:0] regfile_req_a, regfile_req_b, regfile_req_w;    // combinatorial
-    wire regfile_w_en;
-    reg [31:0] regfile_data_w;  // combinatorial
+    CmbExt vExt(
+        .imm16(imm16),
+        .out_sign(ext_out_sign),
+        .out_zero(ext_out_zero)
+    );
+
     wire [`WTG_OP_BIT - 1:0] wtg_op;
-    wire [`IM_ADDR_BIT - 1:0] pc_new;
     wire [`ALU_OP_BIT - 1:0] alu_op;
-    reg [31:0] alu_data_y;      // combinatorial
-    wire [31:0] alu_data_res;
     wire [`DM_OP_BIT - 1:0] datamem_op;
     wire datamem_w_en;
-    wire [31:0] datamem_data;
+    wire syscall_en;
+    wire regfile_w_en;
     wire [`MUX_RF_REQA_BIT - 1:0] mux_regfile_req_a;
     wire [`MUX_RF_REQB_BIT - 1:0] mux_regfile_req_b;    
     wire [`MUX_RF_REQW_BIT - 1:0] mux_regfile_req_w;
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     wire [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
-    wire load_pc = jumped || branched;
-    wire syscall_en;
-    assign pc_dbg = {20'd0, pc, 2'd0};
+    CmbControl vCtl(
+        .opcode(opcode),
+        .rt(rt),
+        .funct(funct),
+        .op_wtg(wtg_op),
+        .w_en_regfile(regfile_w_en),
+        .op_alu(alu_op),
+        .op_datamem(datamem_op),
+        .w_en_datamem(datamem_w_en),
+        .syscall_en(syscall_en),
+        .mux_regfile_req_a(mux_regfile_req_a),
+        .mux_regfile_req_b(mux_regfile_req_b),
+        .mux_regfile_req_w(mux_regfile_req_w),
+        .mux_regfile_data_w(mux_regfile_data_w),
+        .mux_alu_data_y(mux_alu_data_y)
+    );
 
     always @(*) begin
         case (mux_regfile_req_a)
@@ -74,6 +125,26 @@ module SynLajiIntelKnightsLanding(
             default:
                 regfile_req_w = 5'd0;
         endcase
+    end
+    wire [31:0] regfile_data_a, regfile_data_b;
+    reg [4:0] regfile_req_a, regfile_req_b, regfile_req_w;    // combinatorial
+    reg [31:0] regfile_data_w;  // combinatorial
+    SynRegFile vRF(
+        .clk(clk),
+        .rst_n(rst_n),
+        .en(en),
+        .w_en(regfile_w_en),
+        .req_dbg(regfile_req_dbg),
+        .req_w(regfile_req_w),
+        .req_a(regfile_req_a),
+        .req_b(regfile_req_b),
+        .data_dbg(regfile_data_dbg),
+        .data_w(regfile_data_w),
+        .data_a(regfile_data_a),
+        .data_b(regfile_data_b)
+    );
+
+    always @(*) begin
         case (mux_regfile_data_w)
             `MUX_RF_DATAW_ALU:
                 regfile_data_w = alu_data_res;
@@ -96,50 +167,10 @@ module SynLajiIntelKnightsLanding(
         endcase
     end
 
-    SynPC vPC(
-        .clk(clk),
-        .rst_n(rst_n),
-        .en(en),
-        .load_pc(load_pc),
-        .pc_new(pc_new),
-        .pc(pc),
-        .pc_4(pc_4)
-    );
-    CmbInstMem #(
-        .ProgPath(ProgPath)
-    ) vIM(
-        .addr(pc),
-        .inst(inst)
-    );
-    CmbDecoder vDec(
-        .inst(inst),
-        .opcode(opcode),
-        .rs(rs),
-        .rt(rt),
-        .rd(rd),
-        .shamt(shamt),
-        .funct(funct),
-        .imm16(imm16)
-    );
-    CmbExt vExt(
-        .imm16(imm16),
-        .out_sign(ext_out_sign),
-        .out_zero(ext_out_zero)
-    );
-    SynRegFile vRF(
-        .clk(clk),
-        .rst_n(rst_n),
-        .en(en),
-        .w_en(regfile_w_en),
-        .req_dbg(regfile_req_dbg),
-        .req_w(regfile_req_w),
-        .req_a(regfile_req_a),
-        .req_b(regfile_req_b),
-        .data_dbg(regfile_data_dbg),
-        .data_w(regfile_data_w),
-        .data_a(regfile_data_a),
-        .data_b(regfile_data_b)
-    );
+// ID/EX
+// 
+
+// EX
     CmbWTG vWTG(
         .op(wtg_op),
         .imm(imm16[`IM_ADDR_BIT - 1:0]),
@@ -151,6 +182,9 @@ module SynLajiIntelKnightsLanding(
         .is_branch(is_branch),
         .branched(branched)
     );
+
+    reg [31:0] alu_data_y;      // combinatorial
+    wire [31:0] alu_data_res;
     CmbALU vALU(
         .op(alu_op),
         .data_x(regfile_data_a),
@@ -158,6 +192,21 @@ module SynLajiIntelKnightsLanding(
         .shamt(shamt),
         .data_res(alu_data_res)
     );
+    SynSyscall vSys(
+        .clk(clk),
+        .rst_n(rst_n),
+        .en(en),
+        .syscall_en(syscall_en),
+        .data_v0(regfile_data_a),
+        .data_a0(regfile_data_b),
+        .display(display),
+        .halt(halt)
+    );
+
+// EX/DM
+
+// DM
+    wire [31:0] datamem_data;
     SynDataMem vDM(
         .clk(clk),
         .rst_n(rst_n),
@@ -170,30 +219,8 @@ module SynLajiIntelKnightsLanding(
         .data_dbg(datamem_data_dbg),
         .data(datamem_data)
     );
-    SynSyscall vSys(
-        .clk(clk),
-        .rst_n(rst_n),
-        .en(en),
-        .syscall_en(syscall_en),
-        .data_v0(regfile_data_a),
-        .data_a0(regfile_data_b),
-        .display(display),
-        .halt(halt)
-    );
-    CmbControl vCtl(
-        .opcode(opcode),
-        .rt(rt),
-        .funct(funct),
-        .op_wtg(wtg_op),
-        .w_en_regfile(regfile_w_en),
-        .op_alu(alu_op),
-        .op_datamem(datamem_op),
-        .w_en_datamem(datamem_w_en),
-        .syscall_en(syscall_en),
-        .mux_regfile_req_a(mux_regfile_req_a),
-        .mux_regfile_req_b(mux_regfile_req_b),
-        .mux_regfile_req_w(mux_regfile_req_w),
-        .mux_regfile_data_w(mux_regfile_data_w),
-        .mux_alu_data_y(mux_alu_data_y)
-    );
+
+// DM/WB
+
+// WB
 endmodule
