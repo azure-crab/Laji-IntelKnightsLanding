@@ -1,5 +1,4 @@
 `timescale 1ns / 1ps
-
 `include "Core.vh"
 
 // Brief: CPU Top Module, synchronized
@@ -18,10 +17,10 @@ module SynLajiIntelKnightsLanding(
     output [31:0] datamem_data_dbg;
     output [31:0] display;
     output halted, jumped, is_branch, branched;
-    assign pc_dbg = {20'd0, pc, 2'd0};
 
 // IF
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
+    assign pc_dbg = {20'd0, pc, 2'd0};
     wire [31:0] inst;
     wire [`IM_ADDR_BIT - 1:0] pc_new;
     wire load_pc = jumped || branched;
@@ -128,6 +127,8 @@ module SynLajiIntelKnightsLanding(
                 regfile_req_w = 5'd0;
         endcase
     end
+    wire [4:0] regfile_req_w_wb;
+    wire [31:0] regfile_data_w_wb;
     wire [31:0] regfile_data_a, regfile_data_b;
     reg [31:0] regfile_data_w;  // combinatorial
     SynRegFile vRF(
@@ -136,38 +137,15 @@ module SynLajiIntelKnightsLanding(
         .en(en),
         .w_en(regfile_w_en),
         .req_dbg(regfile_req_dbg),
-        .req_w(regfile_req_w),
+        .req_w(regfile_req_w_wb),
         .req_a(regfile_req_a),
         .req_b(regfile_req_b),
         .data_dbg(regfile_data_dbg),
-        .data_w(regfile_data_w),
+        .data_w(regfile_data_w_wb),
         .data_a(regfile_data_a),
         .data_b(regfile_data_b)
     );
-
-    always @(*) begin
-        case (mux_regfile_data_w)
-            `MUX_RF_DATAW_ALU:
-                regfile_data_w = alu_data_res;
-            `MUX_RF_DATAW_DM:
-                regfile_data_w = datamem_data;
-            `MUX_RF_DATAW_PC4:
-                regfile_data_w = pc_4;
-            default:
-                regfile_data_w = 32'd0;
-        endcase
-        case (mux_alu_data_y)
-            `MUX_ALU_DATAY_RFB:
-                alu_data_y = regfile_data_b;
-            `MUX_ALU_DATAY_EXTS:
-                alu_data_y = ext_out_sign;
-            `MUX_ALU_DATAY_EXTZ:
-                alu_data_y = ext_out_zero;
-            default:
-                alu_data_y = 32'd0;
-        endcase
-    end
-
+    
 // ID/EX
 // DEC.shamt
 // EXT.Sext, Zext
@@ -185,8 +163,8 @@ module SynLajiIntelKnightsLanding(
     wire datamem_w_en_id_ex;
     wire syscall_en_id_ex;
     wire [4:0] regfile_req_w_id_ex;    // combinatorial
-    wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
-//    wire [] mux_ex_regfile_data_a, mux_ex_regfile_data_b; // for redirect
+    wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w_id_ex;
+//    wire [] mux_ex_regfile_data_a_id_ex, mux_ex_regfile_data_b_id_ex; // for redirect
     wire [31:0] regfile_data_a_id_ex, regfile_data_b_id_ex;
 
 // module Pipline_ID_EX(shamt, shamt_id_ex,
@@ -218,8 +196,20 @@ module SynLajiIntelKnightsLanding(
         .is_branch(is_branch),
         .branched(branched)
     );
-
+    
     reg [31:0] alu_data_y;      // combinatorial
+    always @(*) begin
+        case (mux_alu_data_y)
+            `MUX_ALU_DATAY_RFB:
+                alu_data_y = regfile_data_b;
+            `MUX_ALU_DATAY_EXTS:
+                alu_data_y = ext_out_sign;
+            `MUX_ALU_DATAY_EXTZ:
+                alu_data_y = ext_out_zero;
+            default:
+                alu_data_y = 32'd0;
+        endcase
+    end
     wire [31:0] alu_data_res;
     CmbALU vALU(
         .op(alu_op),
@@ -228,6 +218,7 @@ module SynLajiIntelKnightsLanding(
         .shamt(shamt),
         .data_res(alu_data_res)
     );
+    wire halt;
     SynSyscall vSys(
         .clk(clk),
         .rst_n(rst_n),
@@ -291,6 +282,6 @@ module SynLajiIntelKnightsLanding(
 
 // WB
     assign halted = halt_dm_wb;
-    wire [4:0] regfile_req_w_wb = regfile_req_w_dm_wb;
-    wire [31:0] regfile_data_w_wb = regfile_data_w_dm_wb;
+    assign regfile_req_w_wb = regfile_req_w_dm_wb;
+    assign regfile_data_w_wb = regfile_data_w_dm_wb;
 endmodule
