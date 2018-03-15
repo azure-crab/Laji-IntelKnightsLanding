@@ -44,7 +44,6 @@ module SynLajiIntelKnightsLanding(
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     wire [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
     wire load_pc = jumped || branched;
-    wire [`IM_ADDR_BIT - 1:0] pc_new = is_jump || branched ? wtg_pc_new : pc_4;
     wire syscall_en;
     assign pc_dbg = {20'd0, pc, 2'd0};
 
@@ -147,7 +146,7 @@ module SynLajiIntelKnightsLanding(
         .data_x(regfile_data_a),
         .data_y(regfile_data_b),
         .pc_4(pc_4),
-        .pc_new(wtg_pc_new),
+        .pc_new(pc_new),
         .jumped(jumped),
         .is_branch(is_branch),
         .branched(branched)

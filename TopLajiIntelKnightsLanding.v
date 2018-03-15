@@ -149,7 +149,7 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
         .datamem_data_dbg(datamem_data_dbg),
         .display(core_display),
         .halt(core_halt),
-        .is_jump(core_is_jump),
+        .jumped(core_is_jump),
         .is_branch(core_is_branch),
         .branched(core_branched)
     );
