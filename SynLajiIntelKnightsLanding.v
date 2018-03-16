@@ -6,7 +6,7 @@
 module SynLajiIntelKnightsLanding(
     clk, rst_n, en, regfile_req_dbg, datamem_addr_dbg,
     pc_dbg, regfile_data_dbg, datamem_data_dbg, display,
-    halted, jumped, is_branch, branched
+    halted, jumped, is_branch, branched, bubble
 );
     parameter ProgPath = "C:/.Xilinx/benchmark.hex";
     input clk, rst_n, en;
@@ -16,10 +16,8 @@ module SynLajiIntelKnightsLanding(
     output [31:0] regfile_data_dbg;
     output [31:0] datamem_data_dbg;
     output [31:0] display;
-    output halted, jumped, is_branch, branched;
-
+    output halted, jumped, is_branch, branched, bubble;
 // IF
-    wire bubble;        // from CTL
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
     assign pc_dbg = {20'd0, pc, 2'd0};
     wire [31:0] inst;
@@ -153,7 +151,7 @@ module SynLajiIntelKnightsLanding(
         .ex_collision_a(ex_collision_a),
         .dm_collision_a(dm_collision_a),
         .ex_collision_b(ex_collision_b),
-        .dm_collision_a(dm_collision_b)
+        .dm_collision_b(dm_collision_b)
     );
 
     wire regfile_w_en_wb;
