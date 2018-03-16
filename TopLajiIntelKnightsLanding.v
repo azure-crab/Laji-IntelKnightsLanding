@@ -5,7 +5,8 @@
 // Brief: Top Module, I/O included
 // Author: EAirPeter
 module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
-    parameter ProgPath = "F:/OneDrive/azure_projs/computer_organization_lab/proj/benchmark.hex";
+    //parameter ProgPath = "F:/OneDrive/azure_projs/computer_organization_lab/proj/myBenchmark.hex";
+    parameter ProgPath = "C:/.Xilinx/myBenchmark.hex";
     parameter CoreClk0Cnt = `CNT_HZ(2);
     parameter CoreClk1Cnt = `CNT_HZ(20);
     parameter CoreClk2Cnt = `CNT_HZ(200);

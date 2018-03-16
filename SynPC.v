@@ -5,10 +5,11 @@
 // Description: Update program counter
 // Author: G-H-Y
 // Modified by: AzureCrab
-module SynPC(clk, rst_n, en, load_pc, pc_new, pc, pc_4);
+module SynPC(clk, rst_n, en, stall, load_pc, pc_new, pc, pc_4);
     input clk;
     input rst_n;    // negedge reset
     input en;       // high enable normal
+    input stall;
     input load_pc;
     input [`IM_ADDR_BIT - 1:0] pc_new;
     output reg [`IM_ADDR_BIT - 1:0] pc;
@@ -18,8 +19,11 @@ module SynPC(clk, rst_n, en, load_pc, pc_new, pc, pc_4);
 
     always @(posedge clk, negedge rst_n) begin
         if (!rst_n)
-   		    pc = 0;
+   		    pc <= 0;
    	    else if (en)
-   		    pc = (load_pc) ? pc_new[`IM_ADDR_BIT - 1:0] : pc_4[`IM_ADDR_BIT - 1:0];
+            if (load_pc)
+   		        pc <= pc_new[`IM_ADDR_BIT - 1:0];
+            else if (!stall)
+                pc <= pc_4[`IM_ADDR_BIT - 1:0];
     end
 endmodule

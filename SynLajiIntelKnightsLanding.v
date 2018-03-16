@@ -19,6 +19,7 @@ module SynLajiIntelKnightsLanding(
     output halted, jumped, is_branch, branched, bubble;
 // IF
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
+    wire halt;
     assign pc_dbg = {20'd0, pc, 2'd0};
     wire [31:0] inst;
     wire [`IM_ADDR_BIT - 1:0] pc_new;
@@ -26,7 +27,8 @@ module SynLajiIntelKnightsLanding(
     SynPC vPC(
         .clk(clk),
         .rst_n(rst_n),
-        .en(en && !bubble && !halt),
+        .en(en),
+        .stall(stall),
         .load_pc(load_pc),
         .pc_new(pc_new),
         .pc(pc),
@@ -50,7 +52,8 @@ module SynLajiIntelKnightsLanding(
         .clk(clk),
         .rst_n(rst_n),
         .clr(!load_pc),
-        .en(en && !bubble && !halt),
+        .en(en),
+        .stall(bubble),
         .pc_4(pc_4),
         .inst(inst),
         .pc_4_reg(pc_4_if_id),
@@ -144,7 +147,7 @@ module SynLajiIntelKnightsLanding(
         .clk(clk),
         .rst_n(rst_n),
         .en(en),
-        .stalled(bubble || halt),
+        .stalled(bubble),
         .regfile_req_a(regfile_req_a),
         .regfile_req_b(regfile_req_b),
         .regfile_req_w(regfile_req_w),
@@ -204,7 +207,7 @@ module SynLajiIntelKnightsLanding(
     Pipline_ID_EX pp_ID_EX( 
         .clk(clk), 
         .rst_n(rst_n),
-        .clr(!(load_pc || bubble || halt)),
+        .clr(!(load_pc || bubble)),
         .en(en),
         .pc_4(pc_4_if_id),
         .pc_4_reg(pc_4_id_ex),
@@ -301,7 +304,6 @@ module SynLajiIntelKnightsLanding(
         .shamt(shamt_id_ex),
         .data_res(alu_data_res)
     );
-    wire halt;
     SynSyscall vSys(
         .clk(clk),
         .rst_n(rst_n),
