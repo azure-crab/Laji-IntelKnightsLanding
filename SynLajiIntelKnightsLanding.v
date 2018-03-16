@@ -50,7 +50,7 @@ module SynLajiIntelKnightsLanding(
     Pipline_IF_ID pp_IF_ID(  
         .clk(clk),
         .rst_n(rst_n),
-        .clr(load_pc),
+        .clr(!load_pc),
         .en(1),
         .pc_4(pc_4),
         .inst(inst),
@@ -182,7 +182,7 @@ module SynLajiIntelKnightsLanding(
     Pipline_ID_EX pp_ID_EX( 
         .clk(clk), 
         .rst_n(rst_n),
-        .clr(load_pc),
+        .clr(!load_pc),
         .en(1),
         .pc_4(pc_4_if_id),
         .pc_4_reg(pc_4_id_ex),
