@@ -8,10 +8,10 @@ module Pipline_IF_ID(clk, rst_n, clr, en,
     input rst_n;
     input clr;
     input en;
-    input pc_4;
-    input inst;
-    output reg pc_4_reg;
-    output reg inst_reg;
+    input [`IM_ADDR_BIT - 1:0] pc_4;
+    input [31:0] inst;
+    output reg [`IM_ADDR_BIT - 1:0] pc_4_reg;
+    output reg [31:0] inst_reg;
     always @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
             pc_4_reg <= 0;
