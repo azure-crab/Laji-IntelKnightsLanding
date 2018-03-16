@@ -182,7 +182,7 @@ module SynLajiIntelKnightsLanding(
         .clr(load_pc),
         .en(1),
         .pc_4(pc_4_if_id),
-        .pc_4(pc_4_id_ex),
+        .pc_4_reg(pc_4_id_ex),
         .shamt(shamt),
         .shamt_reg(shamt_id_ex),
         .ext_out_sign(ext_out_sign),
