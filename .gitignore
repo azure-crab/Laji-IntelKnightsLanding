@@ -5,3 +5,5 @@
 !*.vh
 !*.xdc
 !test/
+!*.asm
+!*.hex
