@@ -106,6 +106,7 @@ module SynLajiIntelKnightsLanding(
         .mux_regfile_req_a(mux_regfile_req_a),
         .mux_regfile_req_b(mux_regfile_req_b),
         .mux_regfile_req_w(mux_regfile_req_w),
+        .mux_regfile_pre_data_w(mux_regfile_pre_data_w),
         .mux_regfile_data_w(mux_regfile_data_w),
         .mux_alu_data_y(mux_alu_data_y),
         .mux_redirected_regfile_data_a(mux_redirected_regfile_data_a),
