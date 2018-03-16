@@ -28,7 +28,7 @@ module SynLajiIntelKnightsLanding(
         .clk(clk),
         .rst_n(rst_n),
         .en(en),
-        .stall(stall),
+        .stall(bubble || halt),
         .load_pc(load_pc),
         .pc_new(pc_new),
         .pc(pc),
@@ -53,7 +53,7 @@ module SynLajiIntelKnightsLanding(
         .rst_n(rst_n),
         .clr(!load_pc),
         .en(en),
-        .stall(bubble),
+        .stall(bubble || halt),
         .pc_4(pc_4),
         .inst(inst),
         .pc_4_reg(pc_4_if_id),
@@ -147,10 +147,10 @@ module SynLajiIntelKnightsLanding(
         .clk(clk),
         .rst_n(rst_n),
         .en(en),
-        .stalled(bubble),
+        .stalled(bubble || halt),
         .regfile_req_a(regfile_req_a),
         .regfile_req_b(regfile_req_b),
-        .regfile_req_w(regfile_req_w),
+        .regfile_req_w((regfile_w_en) ? regfile_req_w : 0),
         .ex_collision_a(ex_collision_a),
         .dm_collision_a(dm_collision_a),
         .ex_collision_b(ex_collision_b),
@@ -207,7 +207,7 @@ module SynLajiIntelKnightsLanding(
     Pipline_ID_EX pp_ID_EX( 
         .clk(clk), 
         .rst_n(rst_n),
-        .clr(!(load_pc || bubble)),
+        .clr(!(load_pc || bubble || halt)),
         .en(en),
         .pc_4(pc_4_if_id),
         .pc_4_reg(pc_4_id_ex),
@@ -308,7 +308,7 @@ module SynLajiIntelKnightsLanding(
         .clk(clk),
         .rst_n(rst_n),
         .en(en),
-        .syscall_en(syscall_en),
+        .syscall_en(syscall_en_id_ex),
         .data_v0(redirected_regfile_data_a),
         .data_a0(redirected_regfile_data_b),
         .display(display),
@@ -320,7 +320,7 @@ module SynLajiIntelKnightsLanding(
         regfile_pre_data_w = alu_data_res;
         case (mux_regfile_pre_data_w_id_ex)
             `MUX_RF_DATAW_PC4:
-                regfile_pre_data_w = pc_4_id_ex;
+                regfile_pre_data_w = {pc_4_id_ex, 2'b00};
             // MUX_RF_DATAW_ALU
             default: ;
         endcase
