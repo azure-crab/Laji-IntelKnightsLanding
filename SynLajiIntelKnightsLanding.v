@@ -312,7 +312,7 @@ module SynLajiIntelKnightsLanding(
     wire regfile_w_en_ex_dm;
     wire [4:0] regfile_req_w_ex_dm;
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w_ex_dm;
-    Pipline_EX_DM( 
+    Pipline_EX_DM pp_EX_DM( 
         .clk(clk),
         .rst_n(rst_n),
         .clr(1),

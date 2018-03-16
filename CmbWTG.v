@@ -27,7 +27,7 @@ module CmbWTG(op, imm, data_x, data_y, pc_4, pc_new, jumped, is_branch, branched
         case (op)
             `WTG_OP_J32: begin
                 jumped = 1;
-                pc_new = data_x[`IM_ADDR_BIT - 1:0];
+                pc_new = data_x[`IM_ADDR_BIT + 1:2];
             end
             `WTG_OP_J26: begin 
                 jumped = 1;
