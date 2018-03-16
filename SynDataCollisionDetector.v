@@ -2,6 +2,7 @@ module SynDataCollisionDetector(clk, rst, en,
                                 regfile_req_a, regfile_req_b, regfile_req_w, 
                                 ex_collision_a, dm_collision_a,
                                 ex_collision_b, dm_collision_b);
+    input clk, rst, en;
     input[4:0] regfile_req_a, regfile_req_b, regfile_req_w;
     output ex_collision_a, dm_collision_a, ex_collision_b, dm_collision_b;
     reg[4:0] ex_regfile_req_w, dm_regfile_req_w;

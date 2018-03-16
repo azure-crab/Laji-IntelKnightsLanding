@@ -181,6 +181,8 @@ module SynLajiIntelKnightsLanding(
         .rst_n(rst_n),
         .clr(load_pc),
         .en(1),
+        .pc_4(pc_4_if_id),
+        .pc_4(pc_4_id_ex),
         .shamt(shamt),
         .shamt_reg(shamt_id_ex),
         .ext_out_sign(ext_out_sign),
@@ -215,8 +217,7 @@ module SynLajiIntelKnightsLanding(
         .regfile_data_a_reg(regfile_data_a_id_ex),
         .regfile_data_b(regfile_data_b),
         .regfile_data_b_reg(regfile_data_b_id_ex)
-)
-
+);
 // -------------------------------- EX ---------------------------------
     reg [31:0] redirected_regfile_data_a, redirected_regfile_data_b;
     wire [31:0] regfile_pre_data_w_ex_dm;

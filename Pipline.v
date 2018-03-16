@@ -33,6 +33,7 @@ module Pipline_IF_ID(clk, rst_n, clr, en,
 endmodule
 
 module Pipline_ID_EX(clk, rst_n, clr, en,
+                    pc_4,                      pc_4_reg,
                     shamt,                     shamt_reg,
                     ext_out_sign,              ext_out_sign_reg,
                     ext_out_zero,              ext_out_zero_reg,
@@ -50,7 +51,7 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
                     mux_redirected_regfile_data_b,     mux_redirected_regfile_data_b_reg,
                     regfile_data_a,            regfile_data_a_reg,
                     regfile_data_b,            regfile_data_b_reg
-)
+);
     input clk;
     input rst_n;
     input clr;
@@ -89,6 +90,7 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
 
     always @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
+            pc_4_reg<=0;
             shamt_reg<=0;
             ext_out_sign_reg<=0;
             ext_out_zero_reg<=0;
@@ -102,12 +104,13 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
             regfile_w_en_reg<=0;
             mux_regfile_pre_data_w_reg<=0;
             mux_regfile_data_w_reg<=0;
-            mux_ex_regfile_data_a_reg<=0;
-            mux_ex_regfile_data_b_reg<=0;
+            mux_redirected_regfile_data_a_reg<=0;
+            mux_redirected_regfile_data_b_reg<=0;
             regfile_data_a_reg<=0;
             regfile_data_b_reg<=0;
         end
         else if (!clr) begin
+            pc_4_reg<=0;
             shamt_reg<=0;
             ext_out_sign_reg<=0;
             ext_out_zero_reg<=0;
@@ -121,12 +124,13 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
             regfile_w_en_reg<=0;
             mux_regfile_pre_data_w_reg<=0;
             mux_regfile_data_w_reg<=0;
-            mux_ex_regfile_data_a_reg<=0;
-            mux_ex_regfile_data_b_reg<=0;
+            mux_redirected_regfile_data_a_reg<=0;
+            mux_redirected_regfile_data_b_reg<=0;
             regfile_data_a_reg<=0;
             regfile_data_b_reg<=0;
         end
         else if (!en) begin
+            pc_4_reg<=                      pc_4_reg;
             shamt_reg<=                     shamt_reg;
             ext_out_sign_reg<=              ext_out_sign_reg;
             ext_out_zero_reg<=              ext_out_zero_reg;
@@ -134,18 +138,19 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
             alu_op_reg<=                    alu_op_reg;
             mux_alu_data_y_reg<=            mux_alu_data_y_reg;
             datamem_op_reg<=                datamem_op_reg;
-            datamem_w_en_reg<=              datamem_wen_reg;
+            datamem_w_en_reg<=              datamem_w_en_reg;
             syscall_en_reg<=                syscall_en_reg;
             regfile_req_w_reg<=             regfile_req_w_reg;
             regfile_w_en_reg<=              regfile_w_en_reg;
             mux_regfile_pre_data_w_reg<=    mux_regfile_pre_data_w_reg;
             mux_regfile_data_w_reg<=        mux_regfile_data_w_reg;
-            mux_ex_regfile_data_a_reg<=     mux_ex_regfile_data_a_reg;
-            mux_ex_regfile_data_b_reg<=     mux_ex_regfile_data_b_reg;
+            mux_redirected_regfile_data_a_reg<=     mux_redirected_regfile_data_a_reg;
+            mux_redirected_regfile_data_b_reg<=     mux_redirected_regfile_data_b_reg;
             regfile_data_a_reg<=            regfile_data_a_reg;
             regfile_data_b_reg<=            regfile_data_b_reg;
         end
         else begin
+            pc_4_reg<=                      pc_4_reg;
             shamt_reg<=                     shamt;
             ext_out_sign_reg<=              ext_out_sign;
             ext_out_zero_reg<=              ext_out_zero;
@@ -153,14 +158,14 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
             alu_op_reg<=                    alu_op;
             mux_alu_data_y_reg<=            mux_alu_data_y;
             datamem_op_reg<=                datamem_op;
-            datamem_w_en_reg<=              datamem_wen;
+            datamem_w_en_reg<=              datamem_w_en;
             syscall_en_reg<=                syscall_en;
             regfile_req_w_reg<=             regfile_req_w;
             regfile_w_en_reg<=              regfile_w_en;
             mux_regfile_pre_data_w_reg<=    mux_regfile_pre_data_w;
             mux_regfile_data_w_reg<=        mux_regfile_data_w;
-            mux_ex_regfile_data_a_reg<=     mux_ex_regfile_data_a;
-            mux_ex_regfile_data_b_reg<=     mux_ex_regfile_data_b;
+            mux_redirected_regfile_data_a_reg<=     mux_redirected_regfile_data_a_reg;
+            mux_redirected_regfile_data_b_reg<=     mux_redirected_regfile_data_b_reg;
             regfile_data_a_reg<=            regfile_data_a;
             regfile_data_b_reg<=            regfile_data_b;
         end
@@ -244,7 +249,7 @@ module Pipline_EX_DM(clk, rst_n, clr, en,
             regfile_w_en_reg<=              regfile_w_en;
             regfile_req_w_reg<=             regfile_req_w;
             regfile_pre_data_w_reg<=        regfile_pre_data_w;
-            mux_regfile_data_w_reg<=        muxfile_data_w;
+            mux_regfile_data_w_reg<=        mux_regfile_data_w;
             halt_reg<=                      halt;
         end
     end
