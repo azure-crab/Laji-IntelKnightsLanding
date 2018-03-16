@@ -27,7 +27,7 @@ module SynLajiIntelKnightsLanding(
     SynPC vPC(
         .clk(clk),
         .rst_n(rst_n),
-        .en(en),
+        .en(en && !bubble),
         .load_pc(load_pc),
         .pc_new(pc_new),
         .pc(pc),
@@ -51,7 +51,7 @@ module SynLajiIntelKnightsLanding(
         .clk(clk),
         .rst_n(rst_n),
         .clr(!load_pc),
-        .en(en),
+        .en(en && !bubble),
         .pc_4(pc_4),
         .inst(inst),
         .pc_4_reg(pc_4_if_id),
@@ -79,6 +79,10 @@ module SynLajiIntelKnightsLanding(
         .out_zero(ext_out_zero)
     );
 
+    wire ex_collision_a, dm_collision_a;
+    wire ex_collision_b, dm_collision_b;
+    
+    wire bubble;
     wire [`WTG_OP_BIT - 1:0] wtg_op;
     wire [`ALU_OP_BIT - 1:0] alu_op;
     wire [`DM_OP_BIT - 1:0] datamem_op;
@@ -97,6 +101,11 @@ module SynLajiIntelKnightsLanding(
         .opcode(opcode),
         .rt(rt),
         .funct(funct),
+        .ex_collision_a(ex_collision_a),
+        .dm_collision_a(dm_collision_a),
+        .ex_collision_b(ex_collision_b),
+        .dm_collision_b(dm_collision_b),
+        .bubble(bubble),
         .op_wtg(wtg_op),
         .w_en_regfile(regfile_w_en),
         .op_alu(alu_op),
@@ -132,6 +141,18 @@ module SynLajiIntelKnightsLanding(
                 regfile_req_b = 5'd0;
         endcase
     end
+
+    SynDataCollisionDetector vDCD(
+        .clk(clk),
+        .regfile_req_a(regfile_req_a),
+        .regfile_req_b(regfile_req_b),
+        .regfile_req_w(regfile_req_w),
+        .ex_collision_a(ex_collision_a),
+        .dm_collision_a(dm_collision_a),
+        .ex_collision_b(ex_collision_b),
+        .dm_collision_a(dm_collision_b)
+    )
+
     wire regfile_w_en_wb;
     wire [4:0] regfile_req_w_wb;
     wire [31:0] regfile_data_w_wb;
@@ -182,7 +203,7 @@ module SynLajiIntelKnightsLanding(
     Pipline_ID_EX pp_ID_EX( 
         .clk(clk), 
         .rst_n(rst_n),
-        .clr(!load_pc),
+        .clr(!(load_pc || bubble)),
         .en(en),
         .pc_4(pc_4_if_id),
         .pc_4_reg(pc_4_id_ex),
