@@ -19,6 +19,7 @@ module SynLajiIntelKnightsLanding(
     output halted, jumped, is_branch, branched;
 
 // IF
+    wire bubble;        // from CTL
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
     assign pc_dbg = {20'd0, pc, 2'd0};
     wire [31:0] inst;
@@ -82,7 +83,6 @@ module SynLajiIntelKnightsLanding(
     wire ex_collision_a, dm_collision_a;
     wire ex_collision_b, dm_collision_b;
     
-    wire bubble;
     wire [`WTG_OP_BIT - 1:0] wtg_op;
     wire [`ALU_OP_BIT - 1:0] alu_op;
     wire [`DM_OP_BIT - 1:0] datamem_op;
@@ -144,6 +144,9 @@ module SynLajiIntelKnightsLanding(
 
     SynDataCollisionDetector vDCD(
         .clk(clk),
+        .rst_n(rst_n),
+        .en(en),
+        .stalled(bubble),
         .regfile_req_a(regfile_req_a),
         .regfile_req_b(regfile_req_b),
         .regfile_req_w(regfile_req_w),
@@ -151,7 +154,7 @@ module SynLajiIntelKnightsLanding(
         .dm_collision_a(dm_collision_a),
         .ex_collision_b(ex_collision_b),
         .dm_collision_a(dm_collision_b)
-    )
+    );
 
     wire regfile_w_en_wb;
     wire [4:0] regfile_req_w_wb;
