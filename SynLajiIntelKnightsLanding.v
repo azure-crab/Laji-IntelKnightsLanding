@@ -49,7 +49,8 @@ module SynLajiIntelKnightsLanding(
     // TODO: add stall logic
     Pipline_IF_ID pp_IF_ID(  
         .clk(clk),
-        .rst(load_pc),
+        .rst_n(rst_n),
+        .clr(load_pc),
         .en(1),
         .pc_4(pc_4),
         .inst(inst),
@@ -177,7 +178,8 @@ module SynLajiIntelKnightsLanding(
     wire regfile_w_en_id_ex;
     Pipline_ID_EX pp_ID_EX( 
         .clk(clk), 
-        .rst(load_pc),
+        .rst_n(rst_n),
+        .clr(load_pc),
         .en(1),
         .shamt(shamt),
         .shamt_reg(shamt_id_ex),
@@ -311,7 +313,8 @@ module SynLajiIntelKnightsLanding(
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w_ex_dm;
     Pipline_EX_DM( 
         .clk(clk),
-        .rst(1),
+        .rst_n(rst_n),
+        .clr(1),
         .en(1),
         .alu_data_res(alu_data_res),
         .alu_data_res_reg(alu_data_res_ex_dm),
@@ -365,7 +368,8 @@ module SynLajiIntelKnightsLanding(
     wire [4:0] regfile_req_w_dm_wb;
     Pipline_DM_WB pp_DM_WB( 
         .clk(clk),
-        .rst(1),
+        .rst_n(rst_n),
+        .clr(1),
         .en(1),
         .halt(halt_ex_dm),
         .halt_reg(halt_dm_wb),

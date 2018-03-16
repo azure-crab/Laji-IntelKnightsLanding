@@ -1,18 +1,23 @@
 `timescale 1ns / 1ps
 `include "Core.vh"
 
-module Pipline_IF_ID(clk, rst, en, 
+module Pipline_IF_ID(clk, rst_n, clr, en, 
                     pc_4, pc_4_reg,
                     inst, inst_reg);
     input clk;
-    input rst;
+    input rst_n;
+    input clr;
     input en;
     input pc_4;
     input inst;
     output reg pc_4_reg;
     output reg inst_reg;
-    always @(posedge clk) begin
-        if (!rst) begin
+    always @(posedge clk, negedge rst_n) begin
+        if (!rst_n) begin
+            pc_4_reg <= 0;
+            inst_reg <= 0;
+        end
+        else if (!clr) begin
             pc_4_reg <= 0;
             inst_reg <= 0;
         end
@@ -27,7 +32,7 @@ module Pipline_IF_ID(clk, rst, en,
     end
 endmodule
 
-module Pipline_ID_EX( clk, rst, en,
+module Pipline_ID_EX(clk, rst_n, clr, en,
                     shamt,                     shamt_reg,
                     ext_out_sign,              ext_out_sign_reg,
                     ext_out_zero,              ext_out_zero_reg,
@@ -47,7 +52,8 @@ module Pipline_ID_EX( clk, rst, en,
                     regfile_data_b,            regfile_data_b_reg
 )
     input clk;
-    input rst;
+    input rst_n;
+    input clr;
     input en;
     input [`IM_ADDR_BIT - 1:0] pc_4;
     input [4:0] shamt;
@@ -81,68 +87,87 @@ module Pipline_ID_EX( clk, rst, en,
     output reg [31:0] regfile_data_a_reg, regfile_data_b_reg;
     output reg regfile_w_en_reg;
 
-    always @(posedge clk) begin
-        if (!rst) begin
-                    shamt_reg<=0;
-                    ext_out_sign_reg<=0;
-                    ext_out_zero_reg<=0;
-                    wtg_op_reg<=0;
-                    alu_op_reg<=0;
-                    mux_alu_data_y_reg<=0;
-                    datamem_op_reg<=0;
-                    datamem_w_en_reg<=0;
-                    syscall_en_reg<=0;
-                    regfile_req_w_reg<=0;
-                    regfile_w_en_reg<=0;
-                    mux_regfile_pre_data_w_reg<=0;
-                    mux_regfile_data_w_reg<=0;
-                    mux_ex_regfile_data_a_reg<=0;
-                    mux_ex_regfile_data_b_reg<=0;
-                    regfile_data_a_reg<=0;
-                    regfile_data_b_reg<=0;
+    always @(posedge clk, negedge rst_n) begin
+        if (!rst_n) begin
+            shamt_reg<=0;
+            ext_out_sign_reg<=0;
+            ext_out_zero_reg<=0;
+            wtg_op_reg<=0;
+            alu_op_reg<=0;
+            mux_alu_data_y_reg<=0;
+            datamem_op_reg<=0;
+            datamem_w_en_reg<=0;
+            syscall_en_reg<=0;
+            regfile_req_w_reg<=0;
+            regfile_w_en_reg<=0;
+            mux_regfile_pre_data_w_reg<=0;
+            mux_regfile_data_w_reg<=0;
+            mux_ex_regfile_data_a_reg<=0;
+            mux_ex_regfile_data_b_reg<=0;
+            regfile_data_a_reg<=0;
+            regfile_data_b_reg<=0;
+        end
+        else if (!clr) begin
+            shamt_reg<=0;
+            ext_out_sign_reg<=0;
+            ext_out_zero_reg<=0;
+            wtg_op_reg<=0;
+            alu_op_reg<=0;
+            mux_alu_data_y_reg<=0;
+            datamem_op_reg<=0;
+            datamem_w_en_reg<=0;
+            syscall_en_reg<=0;
+            regfile_req_w_reg<=0;
+            regfile_w_en_reg<=0;
+            mux_regfile_pre_data_w_reg<=0;
+            mux_regfile_data_w_reg<=0;
+            mux_ex_regfile_data_a_reg<=0;
+            mux_ex_regfile_data_b_reg<=0;
+            regfile_data_a_reg<=0;
+            regfile_data_b_reg<=0;
         end
         else if (!en) begin
-                    shamt_reg<=                     shamt_reg;
-                    ext_out_sign_reg<=              ext_out_sign_reg;
-                    ext_out_zero_reg<=              ext_out_zero_reg;
-                    wtg_op_reg<=                    wtg_op_reg;
-                    alu_op_reg<=                    alu_op_reg;
-                    mux_alu_data_y_reg<=            mux_alu_data_y_reg;
-                    datamem_op_reg<=                datamem_op_reg;
-                    datamem_w_en_reg<=              datamem_wen_reg;
-                    syscall_en_reg<=                syscall_en_reg;
-                    regfile_req_w_reg<=             regfile_req_w_reg;
-                    regfile_w_en_reg<=              regfile_w_en_reg;
-                    mux_regfile_pre_data_w_reg<=    mux_regfile_pre_data_w_reg;
-                    mux_regfile_data_w_reg<=        mux_regfile_data_w_reg;
-                    mux_ex_regfile_data_a_reg<=     mux_ex_regfile_data_a_reg;
-                    mux_ex_regfile_data_b_reg<=     mux_ex_regfile_data_b_reg;
-                    regfile_data_a_reg<=            regfile_data_a_reg;
-                    regfile_data_b_reg<=            regfile_data_b_reg;
+            shamt_reg<=                     shamt_reg;
+            ext_out_sign_reg<=              ext_out_sign_reg;
+            ext_out_zero_reg<=              ext_out_zero_reg;
+            wtg_op_reg<=                    wtg_op_reg;
+            alu_op_reg<=                    alu_op_reg;
+            mux_alu_data_y_reg<=            mux_alu_data_y_reg;
+            datamem_op_reg<=                datamem_op_reg;
+            datamem_w_en_reg<=              datamem_wen_reg;
+            syscall_en_reg<=                syscall_en_reg;
+            regfile_req_w_reg<=             regfile_req_w_reg;
+            regfile_w_en_reg<=              regfile_w_en_reg;
+            mux_regfile_pre_data_w_reg<=    mux_regfile_pre_data_w_reg;
+            mux_regfile_data_w_reg<=        mux_regfile_data_w_reg;
+            mux_ex_regfile_data_a_reg<=     mux_ex_regfile_data_a_reg;
+            mux_ex_regfile_data_b_reg<=     mux_ex_regfile_data_b_reg;
+            regfile_data_a_reg<=            regfile_data_a_reg;
+            regfile_data_b_reg<=            regfile_data_b_reg;
         end
         else begin
-                    shamt_reg<=                     shamt;
-                    ext_out_sign_reg<=              ext_out_sign;
-                    ext_out_zero_reg<=              ext_out_zero;
-                    wtg_op_reg<=                    wtg_op;
-                    alu_op_reg<=                    alu_op;
-                    mux_alu_data_y_reg<=            mux_alu_data_y;
-                    datamem_op_reg<=                datamem_op;
-                    datamem_w_en_reg<=              datamem_wen;
-                    syscall_en_reg<=                syscall_en;
-                    regfile_req_w_reg<=             regfile_req_w;
-                    regfile_w_en_reg<=              regfile_w_en;
-                    mux_regfile_pre_data_w_reg<=    mux_regfile_pre_data_w;
-                    mux_regfile_data_w_reg<=        mux_regfile_data_w;
-                    mux_ex_regfile_data_a_reg<=     mux_ex_regfile_data_a;
-                    mux_ex_regfile_data_b_reg<=     mux_ex_regfile_data_b;
-                    regfile_data_a_reg<=            regfile_data_a;
-                    regfile_data_b_reg<=            regfile_data_b;
+            shamt_reg<=                     shamt;
+            ext_out_sign_reg<=              ext_out_sign;
+            ext_out_zero_reg<=              ext_out_zero;
+            wtg_op_reg<=                    wtg_op;
+            alu_op_reg<=                    alu_op;
+            mux_alu_data_y_reg<=            mux_alu_data_y;
+            datamem_op_reg<=                datamem_op;
+            datamem_w_en_reg<=              datamem_wen;
+            syscall_en_reg<=                syscall_en;
+            regfile_req_w_reg<=             regfile_req_w;
+            regfile_w_en_reg<=              regfile_w_en;
+            mux_regfile_pre_data_w_reg<=    mux_regfile_pre_data_w;
+            mux_regfile_data_w_reg<=        mux_regfile_data_w;
+            mux_ex_regfile_data_a_reg<=     mux_ex_regfile_data_a;
+            mux_ex_regfile_data_b_reg<=     mux_ex_regfile_data_b;
+            regfile_data_a_reg<=            regfile_data_a;
+            regfile_data_b_reg<=            regfile_data_b;
         end
     end
 endmodule
 
-module Pipline_EX_DM( clk, rst, en,
+module Pipline_EX_DM(clk, rst_n, clr, en,
                     alu_data_res,               alu_data_res_reg,
                     datamem_op,                 datamem_op_reg,
                     datamem_w_en,               datamem_w_en_reg,
@@ -153,7 +178,8 @@ module Pipline_EX_DM( clk, rst, en,
                     mux_regfile_data_w,         mux_regfile_data_w_reg,
                     halt,                       halt_reg);
     input clk;
-    input rst;
+    input rst_n;
+    input clr;
     input en;
 
     input [31:0] alu_data_res;
@@ -176,8 +202,19 @@ module Pipline_EX_DM( clk, rst, en,
     output reg [31:0] regfile_pre_data_w_reg;
     output reg [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w_reg;
 
-    always @(posedge clk) begin
-        if (!rst) begin
+    always @(posedge clk, negedge rst_n) begin
+        if (!rst_n) begin
+            alu_data_res_reg<=0;
+            datamem_op_reg<=0;
+            datamem_w_en_reg<=0;
+            regfile_data_b_reg<=0;
+            regfile_w_en_reg<=0;
+            regfile_req_w_reg<=0;
+            regfile_pre_data_w_reg<=0;
+            mux_regfile_data_w_reg<=0;
+            halt_reg<=0;
+        end
+        else if (!clr) begin
             alu_data_res_reg<=0;
             datamem_op_reg<=0;
             datamem_w_en_reg<=0;
@@ -213,13 +250,14 @@ module Pipline_EX_DM( clk, rst, en,
     end
 endmodule
 
-module Pipline_DM_WB( clk, rst, en,
+module Pipline_DM_WB(clk, rst_n, clr, en,
                     halt,           halt_reg,
                     regfile_w_en,   regfile_w_en_reg,
                     regfile_req_w,  regfile_req_w_reg,
                     regfile_data_w, regfile_data_w_reg);
     input clk;
-    input rst;
+    input rst_n;
+    input clr;
     input en;
 
     input [31:0] regfile_data_w;
@@ -233,7 +271,13 @@ module Pipline_DM_WB( clk, rst, en,
     output reg [4:0] regfile_req_w_reg;
 
     always @(posedge clk) begin
-        if (!rst) begin
+        if (!rst_n) begin
+            halt_reg<=0;
+            regfile_w_en_reg<=0;
+            regfile_req_w_reg<=0;
+            regfile_data_w_reg<=0;
+        end
+        else if (!clr) begin
             halt_reg<=0;
             regfile_w_en_reg<=0;
             regfile_req_w_reg<=0;
