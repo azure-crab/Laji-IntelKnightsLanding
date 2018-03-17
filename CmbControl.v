@@ -5,8 +5,8 @@
 // Brief: Control Module, synchronized
 // Author: FluorineDog
 module CmbControl(
-    opcode, rt, funct,
-    ex_collision_a, dm_collision_a, ex_collision_b, dm_collision_b, bubble,
+    opcode, rt, funct, 
+    load_use, ex_collision_a, dm_collision_a, ex_collision_b, dm_collision_b, bubble,
     op_wtg, w_en_regfile, op_alu, op_datamem, w_en_datamem, syscall_en,
     mux_regfile_req_a, mux_regfile_req_b, mux_regfile_req_w,
     mux_regfile_pre_data_w, mux_regfile_data_w, mux_alu_data_y, 
@@ -15,6 +15,7 @@ module CmbControl(
     input [5:0] opcode;
     input [4:0] rt;
     input [5:0] funct;
+    input load_use;
     input ex_collision_a, dm_collision_a;
     input ex_collision_b, dm_collision_b;
     output bubble;

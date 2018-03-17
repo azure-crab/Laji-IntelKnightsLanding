@@ -6,7 +6,7 @@
 module SynLajiIntelKnightsLanding(
     clk, rst_n, en, regfile_req_dbg, datamem_addr_dbg,
     pc_dbg, regfile_data_dbg, datamem_data_dbg, display,
-    halted, jumped, is_branch, branched, bubble
+    halted, jumped, is_branch, branched, bubble, load_use
 );
     parameter ProgPath = "C:/.Xilinx/benchmark.hex";
     input clk, rst_n, en;
@@ -16,7 +16,7 @@ module SynLajiIntelKnightsLanding(
     output [31:0] regfile_data_dbg;
     output [31:0] datamem_data_dbg;
     output [31:0] display;
-    output halted, jumped, is_branch, branched, bubble;
+    output halted, jumped, is_branch, branched, bubble, load_use;
 // IF
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
     wire halt;
@@ -102,6 +102,7 @@ module SynLajiIntelKnightsLanding(
         .opcode(opcode),
         .rt(rt),
         .funct(funct),
+        .load_use(load_use),
         .ex_collision_a(ex_collision_a),
         .dm_collision_a(dm_collision_a),
         .ex_collision_b(ex_collision_b),
@@ -148,9 +149,11 @@ module SynLajiIntelKnightsLanding(
         .rst_n(rst_n),
         .en(en),
         .stalled(bubble || halt),
+        .dm_load(mux_regfile_data_w),
         .regfile_req_a(regfile_req_a),
         .regfile_req_b(regfile_req_b),
         .regfile_req_w((regfile_w_en) ? regfile_req_w : 0),
+        .load_use(load_use),
         .ex_collision_a(ex_collision_a),
         .dm_collision_a(dm_collision_a),
         .ex_collision_b(ex_collision_b),
