@@ -40,12 +40,16 @@ module CmbControl(
     assign mux_regfile_req_b = syscall_en;
 
     // bubble
-    assign bubble = ex_collision_a || ex_collision_b || dm_collision_a || dm_collision_b;
+    assign bubble = load_use;
 
     always@(*) begin
         // for redirect
-        mux_redirected_regfile_data_a = 0;
-        mux_redirected_regfile_data_b = 0;
+        mux_redirected_regfile_data_a = `MUX_EX_REDIR_A_OLD;
+        mux_redirected_regfile_data_b = `MUX_EX_REDIR_B_OLD;
+        if (ex_collision_a) mux_redirected_regfile_data_a = `MUX_EX_REDIR_A_EX;
+        else if (dm_collision_a) mux_redirected_regfile_data_a = `MUX_EX_REDIR_A_DM;
+        if (ex_collision_b) mux_redirected_regfile_data_b = `MUX_EX_REDIR_B_EX;
+        else if (dm_collision_b) mux_redirected_regfile_data_b = `MUX_EX_REDIR_B_DM;
 
         op_wtg = `WTG_OP_NOP;
         op_alu = `ALU_OP_AND;
