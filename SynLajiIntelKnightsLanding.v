@@ -143,22 +143,32 @@ module SynLajiIntelKnightsLanding(
                 regfile_req_b = 5'd0;
         endcase
     end
-
-    SynDataCollisionDetector vDCD(
-        .clk(clk),
-        .rst_n(rst_n),
-        .en(en),
-        .stalled(bubble || halt || jumped || branched),
-        .dm_load(mux_regfile_data_w),
-        .regfile_req_a(regfile_req_a),
-        .regfile_req_b(regfile_req_b),
-        .regfile_req_w((regfile_w_en) ? regfile_req_w : 5'b0),
-        .load_use(load_use),
-        .ex_collision_a(ex_collision_a),
-        .dm_collision_a(dm_collision_a),
-        .ex_collision_b(ex_collision_b),
-        .dm_collision_b(dm_collision_b)
-    );
+    
+    wire regfile_w_en_id_ex;
+    wire [4:0] regfile_req_w_id_ex;
+    wire regfile_w_en_ex_dm;
+    wire [4:0] regfile_req_w_ex_dm;
+    wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_pre_data_w_id_ex, mux_regfile_data_w_id_ex;
+    assign ex_collision_a = regfile_w_en_id_ex && (regfile_req_w_id_ex != 0) && (regfile_req_w_id_ex == regfile_req_a);
+    assign ex_collision_b = regfile_w_en_id_ex && (regfile_req_w_id_ex != 0) && (regfile_req_w_id_ex == regfile_req_b);
+    assign dm_collision_a = regfile_w_en_ex_dm && (regfile_req_w_ex_dm != 0) && (regfile_req_w_ex_dm == regfile_req_a);
+    assign dm_collision_b = regfile_w_en_ex_dm && (regfile_req_w_ex_dm != 0) && (regfile_req_w_ex_dm == regfile_req_b);
+    assign load_use = (mux_regfile_data_w_id_ex == `MUX_RF_DATAW_DM) && (ex_collision_a || ex_collision_b);
+    // SynDataCollisionDetector vDCD(
+    //     .clk(clk),
+    //     .rst_n(rst_n),
+    //     .en(en),
+    //     .stalled(bubble || halt || jumped || branched),
+    //     .dm_load(mux_regfile_data_w),
+    //     .regfile_req_a(regfile_req_a),
+    //     .regfile_req_b(regfile_req_b),
+    //     .regfile_req_w((regfile_w_en) ? regfile_req_w : 5'b0),
+    //     .load_use(load_use),
+    //     .ex_collision_a(ex_collision_a),
+    //     .dm_collision_a(dm_collision_a),
+    //     .ex_collision_b(ex_collision_b),
+    //     .dm_collision_b(dm_collision_b)
+    // );
 
     wire regfile_w_en_wb;
     wire [4:0] regfile_req_w_wb;
@@ -201,12 +211,9 @@ module SynLajiIntelKnightsLanding(
     wire [`DM_OP_BIT - 1:0] datamem_op_id_ex;
     wire datamem_w_en_id_ex;
     wire syscall_en_id_ex;
-    wire [4:0] regfile_req_w_id_ex;    // combinatorial
-    wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_pre_data_w_id_ex, mux_regfile_data_w_id_ex;
     wire [`MUX_EX_REDIR_DATAA_BIT - 1:0] mux_redirected_regfile_data_a_id_ex; 
     wire [`MUX_EX_REDIR_DATAB_BIT - 1:0] mux_redirected_regfile_data_b_id_ex;
     wire [31:0] regfile_data_a_id_ex, regfile_data_b_id_ex;
-    wire regfile_w_en_id_ex;
     Pipline_ID_EX pp_ID_EX( 
         .clk(clk), 
         .rst_n(rst_n),
@@ -339,13 +346,11 @@ module SynLajiIntelKnightsLanding(
     wire [`DM_OP_BIT - 1:0] datamem_op_ex_dm;
     wire datamem_w_en_ex_dm;
     wire halt_ex_dm;
-    wire regfile_w_en_ex_dm;
-    wire [4:0] regfile_req_w_ex_dm;
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w_ex_dm;
     Pipline_EX_DM pp_EX_DM( 
         .clk(clk),
         .rst_n(rst_n),
-        .clr(1),
+        .clr('b1),
         .en(en),
         .alu_data_res(alu_data_res),
         .alu_data_res_reg(alu_data_res_ex_dm),
@@ -400,7 +405,7 @@ module SynLajiIntelKnightsLanding(
     Pipline_DM_WB pp_DM_WB( 
         .clk(clk),
         .rst_n(rst_n),
-        .clr(1),
+        .clr('b1),
         .en(en),
         .halt(halt_ex_dm),
         .halt_reg(halt_dm_wb),
