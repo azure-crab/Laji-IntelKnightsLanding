@@ -37,6 +37,7 @@ module SynLajiIntelKnightsLanding(
             bht_failed = g_addr != pc_if_id;
         else if (isbj)
             bht_failed = pc_4_id_ex != pc_if_id;
+        // 中断时增加对中断跳转地址预测是否成功的判断，但注意不要修改isbj
     end
     
     SynPC vPC(
@@ -44,12 +45,12 @@ module SynLajiIntelKnightsLanding(
         .rst_n(rst_n),
         .en(en),
         .stall(bubble || halt),
-        .isbj(isbj),                    // 是否为跳转指令
-        .gone(jumped || branched),
-        .succeed(!bht_failed),
-        .pc_before_g(pc_id_ex),
-        .g_addr(g_addr),
-        .s_addr(pc_4_id_ex),
+        .isbj(isbj),                    // 是否为跳转指令，控制对BHT的写入
+        .gone(jumped || branched),      // 即此处是否发生了跳转/分支，如果发生了，则正确的pc应该为g_addr，否则为s_addr
+        .succeed(!bht_failed),          // BHT预测是否正确
+        .pc_before_g(pc_id_ex),         // WTG传递过来，跳转指令的地址，用于更新BHT
+        .g_addr(g_addr),                // 跳转如果成立则要跳到的地址
+        .s_addr(pc_4_id_ex),            // 如果不成立要继续的地址
         .gussed(gussed),
         .pc(pc),
         .pc_4(pc_4)

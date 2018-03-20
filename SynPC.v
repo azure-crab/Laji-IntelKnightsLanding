@@ -43,7 +43,7 @@ module SynPC(clk, rst_n, en,
         if (!rst_n)
    		    pc <= 0;
    	    else if (en)
-            if (isbj && !succeed)
+            if (!succeed)
    		        pc <= (gone) ? g_addr : s_addr;
             else if (!stall)
                 pc <= pc_BHT[`IM_ADDR_BIT - 1:0];
