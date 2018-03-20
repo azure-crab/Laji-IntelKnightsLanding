@@ -82,7 +82,7 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
     input [31:0] regfile_data_a, regfile_data_b;
     input regfile_w_en;
 
-    output reg [`IM_ADDR_BIT - 1:0] pc, pc_4_reg;
+    output reg [`IM_ADDR_BIT - 1:0] pc_reg, pc_4_reg;
     output reg gussed_reg;
     output reg [4:0] shamt_reg;
     output reg [31:0] ext_out_sign_reg, ext_out_zero_reg;

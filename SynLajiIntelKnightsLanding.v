@@ -22,22 +22,35 @@ module SynLajiIntelKnightsLanding(
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
     wire [`IM_ADDR_BIT - 1:0] pc_if_id;
     wire [`IM_ADDR_BIT - 1:0] pc_id_ex;
+    wire [`IM_ADDR_BIT - 1:0] pc_4_id_ex;
     wire halt;
+    wire gussed;
     assign pc_dbg = {20'd0, pc, 2'd0};
     wire [31:0] inst;
-    wire [`IM_ADDR_BIT - 1:0] pc_new;
+    wire [`IM_ADDR_BIT - 1:0] g_addr;   // from wtg
     wire isbj = jumped || is_branch;
-    wire g_addr_id_addr_mismatched = pc_if_id == pc_new;
-    wire bht_failed = isbj && g_addr_id_addr_mismatched;
+    reg bht_failed;
+    
+    always @(*) begin
+        bht_failed = 0;
+        if (jumped || branched)
+            bht_failed = g_addr != pc_if_id;
+        else if (isbj)
+            bht_failed = pc_4_id_ex != pc_if_id;
+    end
+    
     SynPC vPC(
         .clk(clk),
         .rst_n(rst_n),
         .en(en),
         .stall(bubble || halt),
-        .isbj(isbj),
-        .succeed(pc_if_id == pc_new),
+        .isbj(isbj),                    // 是否为跳转指令
+        .gone(jumped || branched),
+        .succeed(!bht_failed),
         .pc_before_g(pc_id_ex),
-        .g_addr(pc_new),
+        .g_addr(g_addr),
+        .s_addr(pc_4_id_ex),
+        .gussed(gussed),
         .pc(pc),
         .pc_4(pc_4)
     );
@@ -214,7 +227,6 @@ module SynLajiIntelKnightsLanding(
     end
 // ID/EX
 // for now just treat read DM -> rt & write rt-> DM as load-use
-    wire [`IM_ADDR_BIT - 1:0] pc_4_id_ex;
     wire gussed_id_ex;
     wire [4:0] shamt_id_ex;
     wire [31:0] ext_out_sign_id_ex, ext_out_zero_id_ex;
@@ -304,7 +316,7 @@ module SynLajiIntelKnightsLanding(
         .data_x(redirected_regfile_data_a),
         .data_y(redirected_regfile_data_b),
         .pc_4(pc_4_id_ex),
-        .pc_new(pc_new),
+        .pc_new(g_addr),
         .jumped(jumped),
         .is_branch(is_branch),
         .branched(branched)

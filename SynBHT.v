@@ -14,7 +14,7 @@ module CmbNewPredict(history, matched, succeed, out_his);
         case(history)
             'b00    : new_his = (succeed) ? 'b01 : 'b00;
             'b11    : new_his = (succeed) ? 'b11 : 'b10;
-            default : new_his = (succeed) ? new_his + 1 : new_his - 1;
+            default : new_his = (succeed) ? history + 1 : history - 1;
         endcase
     end
 endmodule
@@ -30,7 +30,7 @@ module SynBHT(clk, en, rst_n,
     output reg hit;
     output [`IM_ADDR_BIT - 1:0] guess_addr;
 
-    reg valid[`BHT_SIZE:0];
+    reg valid[`BHT_SIZE - 1:0];
     reg [`BHT_ADDR_BIT - 1:0]   lru[0:`BHT_SIZE-1];
     reg [`IM_ADDR_BIT - 1:0]    tag[0:`BHT_SIZE-1];
     reg [1:0]                   history[0:`BHT_SIZE-1];
@@ -42,12 +42,13 @@ module SynBHT(clk, en, rst_n,
     reg update;
     wire [`BHT_ADDR_BIT - 1:0]   write_index;
 
-    assign guess_addr = (history[lookup_index] > 'b01) ? next_addr[lookup_index] : PC_4;
+    assign guess_addr = (hit && history[lookup_index] > 'b01) ? next_addr[lookup_index] : PC_4;
     integer i;
     
     initial
         for (i = 0; i < `BHT_SIZE; i = i + 1) begin
             valid[i] = 'b0;
+            history[i] = 'b00;
             lru[i] = `BHT_SIZE - 1;
         end
 
@@ -83,6 +84,7 @@ module SynBHT(clk, en, rst_n,
     always @(*) begin
         for (i = 0; i < `BHT_SIZE; i = i + 1)
             new_lru[i] = (lru[i] < lru[write_index]) ? lru[i] + 1 : lru[i];
+        new_lru[write_index] = 'b0;
     end
 
     wire [1:0] new_his;
@@ -94,14 +96,15 @@ module SynBHT(clk, en, rst_n,
     );
 
     always @(negedge clk) begin
-        if (en && w_en)
+        if (en && w_en) begin
             for (i = 0; i < `BHT_SIZE; i = i + 1) begin
                 lru[i] <= new_lru[i];
             end
-            valid[write_index] = 'b1;
-            tag[write_index] = pc_before_g;
-            history[write_index] = new_his;
-            next_addr[write_index] = g_addr;
+            valid[write_index] <= 'b1;
+            tag[write_index] <= pc_before_g;
+            history[write_index] <= new_his;
+            next_addr[write_index] <= g_addr;
+        end
     end
 
 endmodule
