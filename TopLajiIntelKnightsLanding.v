@@ -176,6 +176,8 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
         .is_branch(core_is_branch),
         .branched(core_branched),
         .bubble(core_bubble),
-        .load_use(core_load_use)
+        .load_use(core_load_use),
+        // .bht_hit(),
+        // .bht_failed()
     );
 endmodule

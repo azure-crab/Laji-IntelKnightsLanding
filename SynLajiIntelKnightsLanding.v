@@ -7,6 +7,7 @@ module SynLajiIntelKnightsLanding(
     clk, rst_n, en, regfile_req_dbg, datamem_addr_dbg,
     pc_dbg, regfile_data_dbg, datamem_data_dbg, display,
     halted, jumped, is_branch, branched, bubble, load_use
+//    bht_hit, bht_failed
 );
     parameter ProgPath = "C:/.Xilinx/benchmark.hex";
     input clk, rst_n, en;
@@ -19,18 +20,24 @@ module SynLajiIntelKnightsLanding(
     output halted, jumped, is_branch, branched, bubble, load_use;
 // IF
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
+    wire [`IM_ADDR_BIT - 1:0] pc_if_id;
+    wire [`IM_ADDR_BIT - 1:0] pc_id_ex;
     wire halt;
     assign pc_dbg = {20'd0, pc, 2'd0};
     wire [31:0] inst;
     wire [`IM_ADDR_BIT - 1:0] pc_new;
-    wire load_pc = jumped || branched;
+    wire isbj = jumped || is_branch;
+    wire g_addr_id_addr_mismatched = pc_if_id == pc_new;
+    wire bht_failed = isbj && g_addr_id_addr_mismatched;
     SynPC vPC(
         .clk(clk),
         .rst_n(rst_n),
         .en(en),
         .stall(bubble || halt),
-        .load_pc(load_pc),
-        .pc_new(pc_new),
+        .isbj(isbj),
+        .succeed(pc_if_id == pc_new),
+        .pc_before_g(pc_id_ex),
+        .g_addr(pc_new),
         .pc(pc),
         .pc_4(pc_4)
     );
@@ -46,18 +53,23 @@ module SynLajiIntelKnightsLanding(
 // pc_4, inst
     wire [`IM_ADDR_BIT - 1:0] pc_4_if_id;
     wire [31:0] inst_if_id;
+    wire gussed_if_id;
     
     // TODO: add stall logic
     Pipline_IF_ID pp_IF_ID(  
         .clk(clk),
         .rst_n(rst_n),
-        .clr(!load_pc),
+        .clr(!bht_failed),
         .en(en),
         .stall(bubble || halt),
         .pc_4(pc_4),
         .inst(inst),
         .pc_4_reg(pc_4_if_id),
-        .inst_reg(inst_if_id)
+        .inst_reg(inst_if_id),
+        .pc(pc),
+        .pc_reg(pc_if_id),
+        .gussed(gussed),
+        .gussed_reg(gussed_if_id)
     );
 // -------------------------------- ID ---------------------------------
     wire [5:0] opcode, funct;
@@ -203,6 +215,7 @@ module SynLajiIntelKnightsLanding(
 // ID/EX
 // for now just treat read DM -> rt & write rt-> DM as load-use
     wire [`IM_ADDR_BIT - 1:0] pc_4_id_ex;
+    wire gussed_id_ex;
     wire [4:0] shamt_id_ex;
     wire [31:0] ext_out_sign_id_ex, ext_out_zero_id_ex;
     wire [`WTG_OP_BIT - 1:0] wtg_op_id_ex;
@@ -217,8 +230,12 @@ module SynLajiIntelKnightsLanding(
     Pipline_ID_EX pp_ID_EX( 
         .clk(clk), 
         .rst_n(rst_n),
-        .clr(!(load_pc || bubble || halt)),
+        .clr(!(bht_failed || bubble || halt)),
         .en(en),
+        .pc(pc_if_id),
+        .pc_reg(pc_id_ex),
+        .gussed(gussed_if_id),
+        .gussed_reg(gussed_id_ex),
         .pc_4(pc_4_if_id),
         .pc_4_reg(pc_4_id_ex),
         .shamt(shamt),

@@ -21,13 +21,12 @@ endmodule
 
 module SynBHT(clk, en, rst_n, 
               PC, PC_4, 
-              is_branch, jumped, branched, succeed,
+              w_en, succeed,
               pc_before_g, g_addr, 
               hit, guess_addr);
     input clk, en, rst_n;
     input [`IM_ADDR_BIT - 1:0] PC, PC_4, pc_before_g, g_addr;
-    input is_branch, jumped, branched, succeed;
-    wire w_en = is_branch || jumped;
+    input w_en, succeed;
     output reg hit;
     output [`IM_ADDR_BIT - 1:0] guess_addr;
 
@@ -48,6 +47,7 @@ module SynBHT(clk, en, rst_n,
     
     initial
         for (i = 0; i < `BHT_SIZE; i = i + 1) begin
+            valid[i] = 'b0;
             lru[i] = `BHT_SIZE - 1;
         end
 
@@ -94,14 +94,14 @@ module SynBHT(clk, en, rst_n,
     );
 
     always @(negedge clk) begin
-        if (en && w_en) begin
+        if (en && w_en)
             for (i = 0; i < `BHT_SIZE; i = i + 1) begin
                 lru[i] <= new_lru[i];
             end
+            valid[write_index] = 'b1;
             tag[write_index] = pc_before_g;
             history[write_index] = new_his;
             next_addr[write_index] = g_addr;
-        end
     end
 
 endmodule
