@@ -31,8 +31,8 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
     wire [31:0] regfile_data_dbg;
     wire [31:0] datamem_data_dbg;
     wire [31:0] core_display;
-    wire core_halt, core_is_jump, core_is_branch, core_branched, core_bubble, core_load_use;
-    wire [31:0] cnt_cycle, cnt_jump, cnt_branch, cnt_branched, cnt_bubble, cnt_load_use;
+    wire core_halt, core_is_jump, core_is_branch, core_branched, core_bubble, core_load_use, core_bht_hit, core_bht_failed;
+    wire [31:0] cnt_cycle, cnt_jump, cnt_branch, cnt_branched, cnt_bubble, cnt_load_use, cnt_bht_hit, cnt_bht_failed;
 
     always @(*) begin
         case (mux_core_clk)
@@ -52,6 +52,8 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
             `MUX_DISP_DATA_DM_DBG:  disp_data <= datamem_data_dbg;
             `MUX_DISP_DATA_CNT_BUB: disp_data <= cnt_bubble;
             `MUX_DISP_DATA_CNT_LU:  disp_data <= cnt_load_use;
+            `MUX_DISP_DATA_CNT_HIT: disp_data <= cnt_bht_hit;
+            `MUX_DISP_DATA_CNT_FAIL:disp_data <= cnt_bht_failed;
             default:                disp_data <= core_display;
         endcase
     end
@@ -152,6 +154,26 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
         .val(32'd0),
         .cnt(cnt_load_use)
     );
+    AuxCounter #(
+        .CntBit(32)
+    ) vCtrHit(
+        .clk(core_clk),
+        .rst_n(rst_n),
+        .en(core_en && core_bht_hit),
+        .ld(1'b0),
+        .val(32'd0),
+        .cnt(cnt_bht_hit)
+    );
+    AuxCounter #(
+        .CntBit(32)
+    ) vCtrFail(
+        .clk(core_clk),
+        .rst_n(rst_n),
+        .en(core_en && core_bht_failed),
+        .ld(1'b0),
+        .val(32'd0),
+        .cnt(cnt_bht_failed)
+    );
     AuxWTCIE vWTCIE(
         .clk(core_clk),
         .rst_n(rst_n),
@@ -176,8 +198,8 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
         .is_branch(core_is_branch),
         .branched(core_branched),
         .bubble(core_bubble),
-        .load_use(core_load_use)
-        // .bht_hit(),
-        // .bht_failed()
+        .load_use(core_load_use), 
+        .bht_hit(core_bht_hit),
+        .bht_failed(core_bht_failed)
     );
 endmodule

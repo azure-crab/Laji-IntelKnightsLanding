@@ -6,8 +6,8 @@
 module SynLajiIntelKnightsLanding(
     clk, rst_n, en, regfile_req_dbg, datamem_addr_dbg,
     pc_dbg, regfile_data_dbg, datamem_data_dbg, display,
-    halted, jumped, is_branch, branched, bubble, load_use
-//    bht_hit, bht_failed
+    halted, jumped, is_branch, branched, bubble, load_use,
+    bht_hit, bht_failed
 );
     parameter ProgPath = "C:/.Xilinx/benchmark.hex";
     input clk, rst_n, en;
@@ -17,14 +17,13 @@ module SynLajiIntelKnightsLanding(
     output [31:0] regfile_data_dbg;
     output [31:0] datamem_data_dbg;
     output [31:0] display;
-    output halted, jumped, is_branch, branched, bubble, load_use;
+    output halted, jumped, is_branch, branched, bubble, load_use, bht_hit, bht_failed;
 // IF
     wire [`IM_ADDR_BIT - 1:0] pc, pc_4;
     wire [`IM_ADDR_BIT - 1:0] pc_if_id;
     wire [`IM_ADDR_BIT - 1:0] pc_id_ex;
     wire [`IM_ADDR_BIT - 1:0] pc_4_id_ex;
     wire halt;
-    wire gussed;
     assign pc_dbg = {20'd0, pc, 2'd0};
     wire [31:0] inst;
     wire [`IM_ADDR_BIT - 1:0] g_addr;   // from wtg
@@ -51,7 +50,7 @@ module SynLajiIntelKnightsLanding(
         .pc_before_g(pc_id_ex),         // WTG传递过来，跳转指令的地址，用于更新BHT
         .g_addr(g_addr),                // 跳转如果成立则要跳到的地址
         .s_addr(pc_4_id_ex),            // 如果不成立要继续的地址
-        .gussed(gussed),
+        .bht_hit(bht_hit),
         .pc(pc),
         .pc_4(pc_4)
     );
@@ -67,7 +66,6 @@ module SynLajiIntelKnightsLanding(
 // pc_4, inst
     wire [`IM_ADDR_BIT - 1:0] pc_4_if_id;
     wire [31:0] inst_if_id;
-    wire gussed_if_id;
     
     // TODO: add stall logic
     Pipline_IF_ID pp_IF_ID(  
@@ -81,9 +79,7 @@ module SynLajiIntelKnightsLanding(
         .pc_4_reg(pc_4_if_id),
         .inst_reg(inst_if_id),
         .pc(pc),
-        .pc_reg(pc_if_id),
-        .gussed(gussed),
-        .gussed_reg(gussed_if_id)
+        .pc_reg(pc_if_id)
     );
 // -------------------------------- ID ---------------------------------
     wire [5:0] opcode, funct;
@@ -228,7 +224,6 @@ module SynLajiIntelKnightsLanding(
     end
 // ID/EX
 // for now just treat read DM -> rt & write rt-> DM as load-use
-    wire gussed_id_ex;
     wire [4:0] shamt_id_ex;
     wire [31:0] ext_out_sign_id_ex, ext_out_zero_id_ex;
     wire [`WTG_OP_BIT - 1:0] wtg_op_id_ex;
@@ -247,8 +242,6 @@ module SynLajiIntelKnightsLanding(
         .en(en),
         .pc(pc_if_id),
         .pc_reg(pc_id_ex),
-        .gussed(gussed_if_id),
-        .gussed_reg(gussed_id_ex),
         .pc_4(pc_4_if_id),
         .pc_4_reg(pc_4_id_ex),
         .shamt(shamt),

@@ -9,7 +9,7 @@ module SynPC(clk, rst_n, en,
              stall, isbj, gone,
              succeed, pc_before_g,
              g_addr, s_addr, 
-             gussed, pc, pc_4);
+             bht_hit, pc, pc_4);
     input clk;
     input rst_n;    // negedge reset
     input en;       // high enable normal
@@ -19,7 +19,7 @@ module SynPC(clk, rst_n, en,
     input succeed;
     input [`IM_ADDR_BIT - 1:0] pc_before_g;
     input [`IM_ADDR_BIT - 1:0] g_addr, s_addr;
-    output gussed;
+    output bht_hit;
     output reg [`IM_ADDR_BIT - 1:0] pc;
     output [`IM_ADDR_BIT - 1:0] pc_4;
     assign pc_4 = pc + 1;
@@ -35,7 +35,7 @@ module SynPC(clk, rst_n, en,
         .succeed(succeed),
         .pc_before_g(pc_before_g),
         .g_addr(g_addr),
-        .hit(gussed),
+        .hit(bht_hit),
         .guess_addr(pc_BHT)
     );
 

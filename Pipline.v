@@ -4,44 +4,37 @@
 module Pipline_IF_ID(clk, rst_n, clr, en, stall, 
                     pc_4, pc_4_reg,
                     inst, inst_reg,
-                    pc,   pc_reg,
-                    gussed, gussed_reg);
+                    pc,   pc_reg);
     input clk;
     input rst_n;
     input clr;
     input en;
     input stall;
-    input gussed;
     input [`IM_ADDR_BIT - 1:0] pc_4, pc;
     input [31:0] inst;
     output reg [`IM_ADDR_BIT - 1:0] pc_4_reg, pc_reg;
     output reg [31:0] inst_reg;
-    output reg gussed_reg;
     always @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
             pc_4_reg <= 0;
             inst_reg <= 0;
             pc_reg <= 0;
-            gussed_reg <= 0;
         end
         else if (!clr) begin
             pc_4_reg <= 0;
             inst_reg <= 0;
             pc_reg <= 0;
-            gussed_reg <= 0;
         end
         else if (en && !stall) begin
             pc_4_reg <= pc_4;
             inst_reg <= inst;
             pc_reg <= pc;
-            gussed_reg <= gussed; 
         end
     end
 endmodule
 
 module Pipline_ID_EX(clk, rst_n, clr, en,
                     pc,                        pc_reg,
-                    gussed,                    gussed_reg,
                     pc_4,                      pc_4_reg,
                     shamt,                     shamt_reg,
                     ext_out_sign,              ext_out_sign_reg,
@@ -66,7 +59,6 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
     input clr;
     input en;
     input [`IM_ADDR_BIT - 1:0] pc, pc_4;
-    input gussed;
     input [4:0] shamt;
     input [31:0] ext_out_sign, ext_out_zero;
     input [`WTG_OP_BIT - 1:0] wtg_op;
@@ -83,7 +75,6 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
     input regfile_w_en;
 
     output reg [`IM_ADDR_BIT - 1:0] pc_reg, pc_4_reg;
-    output reg gussed_reg;
     output reg [4:0] shamt_reg;
     output reg [31:0] ext_out_sign_reg, ext_out_zero_reg;
     output reg [`WTG_OP_BIT - 1:0] wtg_op_reg;
@@ -102,7 +93,6 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
     always @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
             pc_reg<=0;
-            gussed_reg<=0;
             pc_4_reg<=0;
             shamt_reg<=0;
             ext_out_sign_reg<=0;
@@ -124,7 +114,6 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
         end
         else if (!clr) begin
             pc_reg<=0;
-            gussed_reg<=0;
             pc_4_reg<=0;
             shamt_reg<=0;
             ext_out_sign_reg<=0;
@@ -146,7 +135,6 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
         end
         else if (en) begin
             pc_reg<=                        pc;
-            gussed_reg<=                    gussed;
             pc_4_reg<=                      pc_4;
             shamt_reg<=                     shamt;
             ext_out_sign_reg<=              ext_out_sign;
