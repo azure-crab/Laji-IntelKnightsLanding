@@ -3,6 +3,8 @@
 
 `define IM_ADDR_BIT         10
 `define DM_ADDR_BIT         12
+`define BHT_ADDR_BIT        3
+`define BHT_SIZE            (1 << `BHT_ADDR_BIT)
 
 // WhereToGo.operation
 `define WTG_OP_BIT          3
