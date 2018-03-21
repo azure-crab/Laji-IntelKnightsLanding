@@ -23,7 +23,7 @@ module SynPC(clk, rst_n, en,
     output reg [`IM_ADDR_BIT - 1:0] pc;
     output [`IM_ADDR_BIT - 1:0] pc_4;
     assign pc_4 = pc + 1;
-
+    
     initial pc <= `START_UP;
 
     wire [`IM_ADDR_BIT - 1:0] pc_BHT;
@@ -43,7 +43,7 @@ module SynPC(clk, rst_n, en,
 
     always @(posedge clk, negedge rst_n) begin
         if (!rst_n)
-   		    pc <= 0;
+   		    pc <= `START_UP;
    	    else if (en)
             if (!keep_pc)
    		        pc <= (gone) ? g_addr : s_addr;

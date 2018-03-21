@@ -5,7 +5,8 @@
 // Brief: Top Module, I/O included
 // Author: EAirPeter
 module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n, int0, int1, int2);
-    parameter ProgPath = "F:/OneDrive/azure_projs/computer_organization_lab/proj/Laji-IntelKnightsLanding/test/benchmark_ccmb.hex";
+    // Laji-IntelKnightsLanding/test/
+    parameter ProgPath = "F:/OneDrive/azure_projs/computer_organization_lab/proj/benchmark_ccmb.hex";
     //parameter ProgPath = "C:/.Xilinx/myBenchmark.hex";
     parameter CoreClk0Cnt = `CNT_HZ(2);
     parameter CoreClk1Cnt = `CNT_HZ(20);
@@ -202,8 +203,8 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n, int0, in
         .load_use(core_load_use), 
         .bht_hit(core_bht_hit),
         .bht_failed(core_bht_failed),
-        .int0(int0),
-        .int1(int1),
-        .int2(int2)
+        .int0(!int0),
+        .int1(!int1),
+        .int2(!int2)
     );
 endmodule

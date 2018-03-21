@@ -118,12 +118,12 @@
 `define MUX_ALU_DATAY_EXTZ  `MUX_ALU_DATAY_BIT'h2
 
 // benchmark
-`define START_UP `IM_ADDR_BIT'h0000
+`define START_UP `IM_ADDR_BIT'h027
 
 // interrupt addr
 // remember to divde 4 first
-`define INT_VEC1 `IM_ADDR_BIT'h0000
-`define INT_VEC3 `IM_ADDR_BIT'h0000
-`define INT_VEC2 `IM_ADDR_BIT'h0000
+`define INT_VEC1 `IM_ADDR_BIT'h000
+`define INT_VEC3 `IM_ADDR_BIT'h00d
+`define INT_VEC2 `IM_ADDR_BIT'h01a
 
 `endif
