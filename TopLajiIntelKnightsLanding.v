@@ -6,8 +6,8 @@
 // Author: EAirPeter
 module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n, int0, int1, int2);
     // Laji-IntelKnightsLanding/test/
-    parameter ProgPath = "F:/OneDrive/azure_projs/computer_organization_lab/proj/benchmark_ccmb.hex";
-    //parameter ProgPath = "C:/.Xilinx/myBenchmark.hex";
+//    parameter ProgPath = "F:/OneDrive/azure_projs/computer_organization_lab/proj/benchmark_ccmb.hex";
+    parameter ProgPath = "C:/.Xilinx/benchmark_ccmb.hex";
     parameter CoreClk0Cnt = `CNT_HZ(2);
     parameter CoreClk1Cnt = `CNT_HZ(20);
     parameter CoreClk2Cnt = `CNT_HZ(200);
@@ -203,8 +203,8 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n, int0, in
         .load_use(core_load_use), 
         .bht_hit(core_bht_hit),
         .bht_failed(core_bht_failed),
-        .int0(!int0),
-        .int1(!int1),
-        .int2(!int2)
+        .int0(int0),
+        .int1(int1),
+        .int2(int2)
     );
 endmodule

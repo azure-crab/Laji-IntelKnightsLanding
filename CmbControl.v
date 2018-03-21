@@ -74,6 +74,7 @@ module CmbControl(
         // for interrupt
         inting = 0;
         cp0_w_en = 0;
+        cp0_w_data = 0;
 
         case(opcode)
             6'b000000:  begin 
@@ -152,7 +153,7 @@ module CmbControl(
             6'b010000:  begin
                 case(funct[5:3])
                     3'b011: begin 
-                        op_alu = `WTG_OP_ERET; inting = 1; cp0_w_en = 4'b0110;
+                        op_wtg = `WTG_OP_ERET; inting = 1; cp0_w_en = 4'b0110;
                         if (irs[2])         cp0_w_data = {3'b011, 1'b1};
                         else if (irs[1])    cp0_w_data = {3'b101, 1'b1};
                         else if (irs[0])    cp0_w_data = {3'b110, 1'b1};

@@ -53,14 +53,14 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
                     mux_redirected_regfile_data_b,     mux_redirected_regfile_data_b_reg,
                     regfile_data_a,            regfile_data_a_reg,
                     regfile_data_b,            regfile_data_b_reg,
-                    initing,                   initing_reg,
+                    inting,                   inting_reg,
                     cp0_w_en,                  cp0_w_en_reg,
                     cp0_w_data,                cp0_w_data_reg,
                     cp0_data,                  cp0_data_reg,
                     ints,                      ints_reg
 );
-    input initing;
-    output reg initing_reg;
+    input inting;
+    output reg inting_reg;
     input [3:0] cp0_w_en;
     output reg [3:0] cp0_w_en_reg;
     input [3:0] cp0_w_data;
@@ -71,23 +71,23 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
     output reg [2:0] ints_reg;
     always @(posedge clk) begin
         if (!rst_n) begin
-            initing_reg <= 0;
+            inting_reg <= 0;
             cp0_w_en_reg <= 0;
             cp0_w_data_reg <= 0;
             cp0_data_reg <= 0;
             ints_reg <= 0;
         end
         else if (!clr) begin
-            initing_reg <= 0;
+            inting_reg <= 0;
             cp0_w_en_reg <= 0;
             cp0_w_data_reg <= 0;
             cp0_data_reg <= 0;
             ints_reg <= 0;
         end
         else if (en) begin
-            initing_reg <= initing;
+            inting_reg <= inting;
             cp0_w_en_reg <= cp0_w_en;
-            cp0_w_data_reg <= cp0_w_data_reg;
+            cp0_w_data_reg <= cp0_w_data;
             cp0_data_reg <= cp0_data;
             ints_reg <= ints;
         end
@@ -207,12 +207,12 @@ module Pipline_EX_DM(clk, rst_n, clr, en,
                     regfile_pre_data_w,         regfile_pre_data_w_reg,
                     mux_regfile_data_w,         mux_regfile_data_w_reg,
                     halt,                       halt_reg,
-                    initing,                    initing_reg,
+                    inting,                    inting_reg,
                     cp0_w_en,                   cp0_w_en_reg,
                     cp0_w_data,                 cp0_w_data_reg
 );
-    input initing;
-    output reg initing_reg;
+    input inting;
+    output reg inting_reg;
     input [3:0] cp0_w_en;
     output reg [3:0] cp0_w_en_reg;
     input [3:0] cp0_w_data;
@@ -222,21 +222,21 @@ module Pipline_EX_DM(clk, rst_n, clr, en,
     always @(posedge clk) begin
         if (!rst_n) begin
             pc_reg <= 0;
-            initing_reg <= 0;
+            inting_reg <= 0;
             cp0_w_en_reg <= 0;
             cp0_w_data_reg <= 0;
         end
         else if (!clr) begin
             pc_reg <= 0;
-            initing_reg <= 0;
+            inting_reg <= 0;
             cp0_w_en_reg <= 0;
             cp0_w_data_reg <= 0;
         end
         else if (en) begin
             pc_reg <= pc;
-            initing_reg <= initing;
+            inting_reg <= inting;
             cp0_w_en_reg <= cp0_w_en;
-            cp0_w_data_reg <= cp0_w_data_reg;
+            cp0_w_data_reg <= cp0_w_data;
         end
     end
 
@@ -308,12 +308,12 @@ module Pipline_DM_WB(clk, rst_n, clr, en,
                      regfile_w_en,   regfile_w_en_reg,
                      regfile_req_w,  regfile_req_w_reg,
                      regfile_data_w, regfile_data_w_reg,
-                     initing,        initing_reg,
+                     inting,        inting_reg,
                      cp0_w_en,       cp0_w_en_reg,
                      cp0_w_data,     cp0_w_data_reg
 );
-    input initing;
-    output reg initing_reg;
+    input inting;
+    output reg inting_reg;
     input [3:0] cp0_w_en;
     output reg [3:0] cp0_w_en_reg;
     input [3:0] cp0_w_data;
@@ -323,21 +323,21 @@ module Pipline_DM_WB(clk, rst_n, clr, en,
     always @(posedge clk) begin
         if (!rst_n) begin
             pc_reg <= 0;
-            initing_reg <= 0;
+            inting_reg <= 0;
             cp0_w_en_reg <= 0;
             cp0_w_data_reg <= 0;
         end
         else if (!clr) begin
             pc_reg <= 0;
-            initing_reg <= 0;
+            inting_reg <= 0;
             cp0_w_en_reg <= 0;
             cp0_w_data_reg <= 0;
         end
         else if (en) begin
             pc_reg <= pc;
-            initing_reg <= initing;
+            inting_reg <= inting;
             cp0_w_en_reg <= cp0_w_en;
-            cp0_w_data_reg <= cp0_w_data_reg;
+            cp0_w_data_reg <= cp0_w_data;
         end
     end
 

@@ -27,7 +27,15 @@ module SynCoprocessor(
     reg [2:0] irs_;
     reg ie_;
     reg [31:0] epc_;
-    
+
+
+    initial begin
+        ir_ <= 0;
+        irs_ <= 0;
+        ie_ <= 1;
+        epc_ <= 0;
+    end
+
     assign irs = {28'b0, ir_};
     assign ie = {31'b0, ie_};
     assign epc = epc_;
@@ -35,11 +43,11 @@ module SynCoprocessor(
     reg [2:0] inm;
     always @(*) begin
         inm = 3'b111;
-        if (irs[2]) inm = 3'b0;
-        else if (irs[1]) inm = 3'b100;
-        else if (irs[0]) inm = 3'b110;
+        if (irs_[2]) inm = 3'b0;
+        else if (irs_[1]) inm = 3'b100;
+        else if (irs_[0]) inm = 3'b110;
     end
-    assign int = ie && |(inm & ir_);
+    assign int = ie_ && |(inm & ir_);
     always @(*) begin
         ints = 3'd0;
         if (ir_[2]) ints = 3'd3;
@@ -51,7 +59,7 @@ module SynCoprocessor(
         if (!rst_n) begin
             ir_ <= 0;
             irs_ <= 0;
-            ie_ <= 0;
+            ie_ <= 1;
             epc_ <= 0;
         end
         else if (en) begin

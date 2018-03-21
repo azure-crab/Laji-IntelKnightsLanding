@@ -343,6 +343,8 @@ module SynLajiIntelKnightsLanding(
         .cp0_w_data_reg(cp0_w_data_id_ex),
         .cp0_data(cp0_data),
         .cp0_data_reg(cp0_data_id_ex),
+        .inting(inting),
+        .inting_reg(inting_id_ex),
         .ints(ints),
         .ints_reg(ints_id_ex)
 );
@@ -473,7 +475,9 @@ module SynLajiIntelKnightsLanding(
         .cp0_w_en(cp0_w_en_id_ex),
         .cp0_w_en_reg(cp0_w_en_ex_dm),
         .cp0_w_data(cp0_w_data_id_ex),
-        .cp0_w_data_reg(cp0_w_data_ex_dm)
+        .cp0_w_data_reg(cp0_w_data_ex_dm),
+        .inting(inting_id_ex),
+        .inting_reg(inting_ex_dm)
     );
 // -------------------------------- DM ---------------------------------
     wire [31:0] datamem_data;
@@ -526,7 +530,9 @@ module SynLajiIntelKnightsLanding(
         .cp0_w_en(cp0_w_en_ex_dm),
         .cp0_w_en_reg(cp0_w_en_dm_wb),
         .cp0_w_data(cp0_w_data_ex_dm),
-        .cp0_w_data_reg(cp0_w_data_dm_wb)
+        .cp0_w_data_reg(cp0_w_data_dm_wb),
+        .inting(inting_ex_dm),
+        .inting_reg(inting_dm_wb)
         );
 // -------------------------------- WB ---------------------------------
     assign epc_w_data = {{(30-`IM_ADDR_BIT){1'b0}}, pc_dm_wb,2'b00};
