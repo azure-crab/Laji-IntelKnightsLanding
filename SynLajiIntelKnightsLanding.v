@@ -7,12 +7,14 @@ module SynLajiIntelKnightsLanding(
     clk, rst_n, en, regfile_req_dbg, datamem_addr_dbg,
     pc_dbg, regfile_data_dbg, datamem_data_dbg, display,
     halted, jumped, is_branch, branched, bubble, load_use,
-    bht_hit, bht_failed
+    bht_hit, bht_failed,
+    int0, int1, int2
 );
     parameter ProgPath = "C:/.Xilinx/benchmark.hex";
     input clk, rst_n, en;
     input [4:0] regfile_req_dbg;
     input [`DM_ADDR_BIT - 1:0] datamem_addr_dbg;
+    input int0, int1, int2;
     output [31:0] pc_dbg;
     output [31:0] regfile_data_dbg;
     output [31:0] datamem_data_dbg;
@@ -66,8 +68,6 @@ module SynLajiIntelKnightsLanding(
 // pc_4, inst
     wire [`IM_ADDR_BIT - 1:0] pc_4_if_id;
     wire [31:0] inst_if_id;
-    
-    // TODO: add stall logic
     Pipline_IF_ID pp_IF_ID(  
         .clk(clk),
         .rst_n(rst_n),
@@ -103,9 +103,6 @@ module SynLajiIntelKnightsLanding(
         .out_zero(ext_out_zero)
     );
 
-    wire ex_collision_a, dm_collision_a;
-    wire ex_collision_b, dm_collision_b;
-    
     wire [`WTG_OP_BIT - 1:0] wtg_op;
     wire [`ALU_OP_BIT - 1:0] alu_op;
     wire [`DM_OP_BIT - 1:0] datamem_op;
@@ -115,21 +112,26 @@ module SynLajiIntelKnightsLanding(
     wire [`MUX_RF_REQA_BIT - 1:0] mux_regfile_req_a;
     wire [`MUX_RF_REQB_BIT - 1:0] mux_regfile_req_b;    
     wire [`MUX_RF_REQW_BIT - 1:0] mux_regfile_req_w;
-    wire [`MUX_EX_REDIR_DATAA_BIT - 1:0] mux_redirected_regfile_data_a;
-    wire [`MUX_EX_REDIR_DATAB_BIT - 1:0] mux_redirected_regfile_data_b;
     wire [`MUX_RF_PRE_DATAW_BIT - 1:0] mux_regfile_pre_data_w;
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     wire [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
+    // for bubble and redirect
+    wire ex_collision_a, dm_collision_a;
+    wire ex_collision_b, dm_collision_b;
+    wire [`MUX_EX_REDIR_DATAA_BIT - 1:0] mux_redirected_regfile_data_a;
+    wire [`MUX_EX_REDIR_DATAB_BIT - 1:0] mux_redirected_regfile_data_b;
+    // for interrupt
+    wire [3:0] cp0_w_en, cp0_w_en_id_ex, cp0_w_en_ex_dm, cp0_w_en_dm_wb;
+    wire inting, inting_id_ex, inting_ex_dm, inting_dm_wb;
+    wire int;
+    wire [2:0] ints;
+    wire [3:0] cp0_w_data;
+    wire [`MUX_CP0_DATA_BIT - 1:0] mux_cp0_data;
+    wire [31:0] irs;
     CmbControl vCtl(
         .opcode(opcode),
         .rt(rt),
         .funct(funct),
-        .load_use(load_use),
-        .ex_collision_a(ex_collision_a),
-        .dm_collision_a(dm_collision_a),
-        .ex_collision_b(ex_collision_b),
-        .dm_collision_b(dm_collision_b),
-        .bubble(bubble),
         .op_wtg(wtg_op),
         .w_en_regfile(regfile_w_en),
         .op_alu(alu_op),
@@ -142,11 +144,53 @@ module SynLajiIntelKnightsLanding(
         .mux_regfile_pre_data_w(mux_regfile_pre_data_w),
         .mux_regfile_data_w(mux_regfile_data_w),
         .mux_alu_data_y(mux_alu_data_y),
+        // for bubble and redirect
+        .load_use(load_use),
+        .ex_collision_a(ex_collision_a),
+        .dm_collision_a(dm_collision_a),
+        .ex_collision_b(ex_collision_b),
+        .dm_collision_b(dm_collision_b),
+        .bubble(bubble),
         .mux_redirected_regfile_data_a(mux_redirected_regfile_data_a),
-        .mux_redirected_regfile_data_b(mux_redirected_regfile_data_b)
+        .mux_redirected_regfile_data_b(mux_redirected_regfile_data_b),
+        // for interrupt
+        .cp0_w_en(cp0_w_en),
+        .cp0_w_data(cp0_w_data),
+        .cp0_w_collision((|cp0_w_en_id_ex) || (|cp0_w_en_ex_dm)),
+        .int(int && !(inting_id_ex || inting_ex_dm)),                   // only get interrupt when no interrupt handling
+        .ints(ints),
+        .inting(inting),
+        .irs(irs),
+        .mux_cp0_data(mux_cp0_data)
     );
 
-    reg [4:0] regfile_req_a, regfile_req_b, regfile_req_w;    // combinatorial
+    wire irs_set_en, irs_clr_en, ie_w_en, epc_w_en;
+    wire [2:0] irs_w_mask;
+    wire ie_w_data;
+    wire [31:0] epc_w_data;
+    wire [31:0] ie, epc;
+    SynCoprocessor vCP0(
+        .clk(clk),
+        .rst_n(rst_n),
+        .en(en),
+        .int0(int0),
+        .int1(int1),
+        .int2(int2),
+        .irs_set_en(irs_set_en),
+        .irs_clr_en(irs_clr_en),
+        .irs_w_mask(irs_w_mask),
+        .ie_w_en(ie_w_en),
+        .ie_w_data(ie_w_data),
+        .epc_w_en(epc_w_en),
+        .epc_w_data(epc_w_data),
+        .int(int),
+        .ints(ints),
+        .irs(irs),
+        .ie(ie),
+        .epc(epc)
+    );
+
+    reg [4:0] regfile_req_a, regfile_req_b;    // combinatorial
     always @(*) begin
         case (mux_regfile_req_a)
             `MUX_RF_REQA_RS:
@@ -210,6 +254,9 @@ module SynLajiIntelKnightsLanding(
         .data_a(regfile_data_a),
         .data_b(regfile_data_b)
     );
+
+    reg [4:0] regfile_req_w;
+    reg [31:0] cp0_data;
     always @(*) begin
         case (mux_regfile_req_w)
             `MUX_RF_REQW_RD:
@@ -220,6 +267,14 @@ module SynLajiIntelKnightsLanding(
                 regfile_req_w = 5'd31;
             default:
                 regfile_req_w = 5'd0;
+        endcase
+        case (mux_cp0_data)
+            `MUX_CP0_DATA_IE:
+                cp0_data = ie;
+            `MUX_CP0_DATA_EPC:
+                cp0_data = epc;
+            default:
+                cp0_data = 0;
         endcase
     end
 // ID/EX
@@ -235,6 +290,8 @@ module SynLajiIntelKnightsLanding(
     wire [`MUX_EX_REDIR_DATAA_BIT - 1:0] mux_redirected_regfile_data_a_id_ex; 
     wire [`MUX_EX_REDIR_DATAB_BIT - 1:0] mux_redirected_regfile_data_b_id_ex;
     wire [31:0] regfile_data_a_id_ex, regfile_data_b_id_ex;
+    wire [3:0] cp0_w_data_id_ex;
+    wire [31:0] cp0_data_id_ex;
     Pipline_ID_EX pp_ID_EX( 
         .clk(clk), 
         .rst_n(rst_n),
@@ -277,7 +334,13 @@ module SynLajiIntelKnightsLanding(
         .regfile_data_a(regfile_data_a),
         .regfile_data_a_reg(regfile_data_a_id_ex),
         .regfile_data_b(regfile_data_b),
-        .regfile_data_b_reg(regfile_data_b_id_ex)
+        .regfile_data_b_reg(regfile_data_b_id_ex),
+        .cp0_w_en(cp0_w_en),
+        .cp0_w_en_reg(cp0_w_en_id_ex),
+        .cp0_w_data(cp0_w_data),
+        .cp0_w_data_reg(cp0_w_data_id_ex),
+        .cp0_data(cp0_data),
+        .cp0_data_reg(cp0_data_id_ex)
 );
 // -------------------------------- EX ---------------------------------
     reg [31:0] redirected_regfile_data_a, redirected_regfile_data_b;
@@ -354,7 +417,10 @@ module SynLajiIntelKnightsLanding(
         case (mux_regfile_pre_data_w_id_ex)
             `MUX_RF_DATAW_PC4:
                 regfile_pre_data_w = {pc_4_id_ex, 2'b00};
-            // MUX_RF_DATAW_ALU
+            `MUX_RF_DATAW_ALU:
+                regfile_pre_data_w = alu_data_res;
+            `MUX_RF_DATAW_CP0:
+                regfile_pre_data_w = cp0_data_id_ex;
             default: ;
         endcase
     end
@@ -370,7 +436,11 @@ module SynLajiIntelKnightsLanding(
     wire datamem_w_en_ex_dm;
     wire halt_ex_dm;
     wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w_ex_dm;
+    wire [3:0] cp0_w_data_ex_dm;
+    wire [`IM_ADDR_BIT-1:0] pc_ex_dm;
     Pipline_EX_DM pp_EX_DM( 
+        .pc(pc_id_ex),
+        .pc_reg(pc_ex_dm),
         .clk(clk),
         .rst_n(rst_n),
         .clr('b1),
@@ -392,7 +462,11 @@ module SynLajiIntelKnightsLanding(
         .mux_regfile_data_w(mux_regfile_data_w_id_ex),
         .mux_regfile_data_w_reg(mux_regfile_data_w_ex_dm),
         .halt(halt),
-        .halt_reg(halt_ex_dm)
+        .halt_reg(halt_ex_dm),
+        .cp0_w_en(cp0_w_en_id_ex),
+        .cp0_w_en_reg(cp0_w_en_ex_dm),
+        .cp0_w_data(cp0_w_data_id_ex),
+        .cp0_w_data_reg(cp0_w_data_ex_dm)
     );
 // -------------------------------- DM ---------------------------------
     wire [31:0] datamem_data;
@@ -425,7 +499,11 @@ module SynLajiIntelKnightsLanding(
     wire halt_dm_wb;
     wire regfile_w_en_dm_wb;
     wire [4:0] regfile_req_w_dm_wb;
+    wire [3:0] cp0_w_data_dm_wb;
+    wire [`IM_ADDR_BIT-1:0] pc_dm_wb;
     Pipline_DM_WB pp_DM_WB( 
+        .pc(pc_ex_dm),
+        .pc_reg(pc_dm_wb),
         .clk(clk),
         .rst_n(rst_n),
         .clr('b1),
@@ -437,9 +515,16 @@ module SynLajiIntelKnightsLanding(
         .regfile_req_w(regfile_req_w_ex_dm),
         .regfile_req_w_reg(regfile_req_w_dm_wb),
         .regfile_data_w(regfile_data_w),
-        .regfile_data_w_reg(regfile_data_w_dm_wb)
+        .regfile_data_w_reg(regfile_data_w_dm_wb),
+        .cp0_w_en(cp0_w_en_ex_dm),
+        .cp0_w_en_reg(cp0_w_en_dm_wb),
+        .cp0_w_data(cp0_w_data_ex_dm),
+        .cp0_w_data_reg(cp0_w_data_dm_wb)
         );
 // -------------------------------- WB ---------------------------------
+    assign epc_w_data = {{(30-`IM_ADDR_BIT){1'b0}}, pc_dm_wb,2'b00};
+    assign {irs_set_en, irs_clr_en, ie_w_en, epc_w_en} = cp0_w_en_dm_wb;
+    assign {irs_w_mask, ie_w_data} = cp0_w_data_dm_wb;
     assign halted = halt_dm_wb;
     assign regfile_w_en_wb = regfile_w_en_dm_wb;
     assign regfile_req_w_wb = regfile_req_w_dm_wb;

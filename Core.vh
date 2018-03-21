@@ -71,6 +71,11 @@
 // Register $ra
 `define MUX_RF_REQW_31      `MUX_RF_REQW_BIT'h2
 
+// Multiplexer.Coprocessor0.register_number_requested_to_read
+`define MUX_CP0_DATA_BIT    1
+`define MUX_CP0_DATA_IE     `MUX_CP0_DATA_BIT'h0
+`define MUX_CP0_DATA_EPC    `MUX_CP0_DATA_BIT'h1
+
 // Multiplexer.EX.redirect_regfile_dataA
 `define MUX_EX_REDIR_DATAA_BIT  2
 `define MUX_EX_REDIR_A_OLD      `MUX_EX_REDIR_DATAA_BIT'h0
@@ -84,11 +89,13 @@
 `define MUX_EX_REDIR_B_DM       `MUX_EX_REDIR_DATAB_BIT'h2
 
 // Multiplexer.RegisterFile.pre_data_requested_to_write
-`define MUX_RF_PRE_DATAW_BIT    1
+`define MUX_RF_PRE_DATAW_BIT    2
 // Output of ALU
 `define MUX_RF_DATAW_ALU    `MUX_RF_PRE_DATAW_BIT'h0
 // PC + 4
 `define MUX_RF_DATAW_PC4    `MUX_RF_PRE_DATAW_BIT'h1
+// cp0 data
+`define MUX_RF_DATAW_CP0    `MUX_RF_PRE_DATAW_BIT'h2
 
 // Multiplexer.RegisterFile.data_requested_to_write
 `define MUX_RF_DATAW_BIT    1

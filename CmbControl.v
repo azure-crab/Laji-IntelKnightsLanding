@@ -10,15 +10,14 @@ module CmbControl(
     op_wtg, w_en_regfile, op_alu, op_datamem, w_en_datamem, syscall_en,
     mux_regfile_req_a, mux_regfile_req_b, mux_regfile_req_w,
     mux_regfile_pre_data_w, mux_regfile_data_w, mux_alu_data_y, 
-    mux_redirected_regfile_data_a, mux_redirected_regfile_data_b
+    mux_redirected_regfile_data_a, mux_redirected_regfile_data_b,
+    cp0_w_collision, int, ints, irs,
+    cp0_w_en, cp0_w_data, inting,
+    mux_cp0_data
 );
     input [5:0] opcode;
     input [4:0] rt;
     input [5:0] funct;
-    input load_use;
-    input ex_collision_a, dm_collision_a;
-    input ex_collision_b, dm_collision_b;
-    output bubble;
     output reg [`WTG_OP_BIT - 1:0] op_wtg;
     output reg w_en_regfile;
     output reg [`ALU_OP_BIT - 1:0] op_alu; // alias to alu to increase Hamming Distance 
@@ -30,10 +29,22 @@ module CmbControl(
     output reg [`MUX_RF_REQW_BIT - 1:0] mux_regfile_req_w;
     output reg [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     output reg [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
-
+    // for bubble & redirect
+    input load_use;
+    input ex_collision_a, dm_collision_a;
+    input ex_collision_b, dm_collision_b;
+    output bubble;
     output reg [`MUX_RF_PRE_DATAW_BIT - 1:0] mux_regfile_pre_data_w;
     output reg [`MUX_EX_REDIR_DATAA_BIT - 1:0] mux_redirected_regfile_data_a;
     output reg [`MUX_EX_REDIR_DATAB_BIT - 1:0] mux_redirected_regfile_data_b;
+    // for interrupt
+    input cp0_w_collision, int;
+    input [2:0] ints;
+    input [2:0] irs;
+    output reg inting;
+    output reg [3:0] cp0_w_en;
+    output reg [3:0] cp0_w_data;
+    output reg [`MUX_CP0_DATA_BIT - 1:0] mux_cp0_data;
 
     // when its syscall, both of these two mux signal will be 1 (see Core.vh)
     assign mux_regfile_req_a = syscall_en;

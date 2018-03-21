@@ -4,7 +4,7 @@
 
 // Brief: Top Module, I/O included
 // Author: EAirPeter
-module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
+module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n, int0, int1, int2);
     parameter ProgPath = "F:/OneDrive/azure_projs/computer_organization_lab/proj/Laji-IntelKnightsLanding/test/benchmark_ccmb.hex";
     //parameter ProgPath = "C:/.Xilinx/myBenchmark.hex";
     parameter CoreClk0Cnt = `CNT_HZ(2);
@@ -15,6 +15,7 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
     input clk;
     input rst_n;
     input resume;
+    input int0, int1, int2;
     input [15:0] swt;
     output [7:0] seg_n;
     output [7:0] an_n;
@@ -200,6 +201,9 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n);
         .bubble(core_bubble),
         .load_use(core_load_use), 
         .bht_hit(core_bht_hit),
-        .bht_failed(core_bht_failed)
+        .bht_failed(core_bht_failed),
+        .int0(),
+        .int1(),
+        .int2()
     );
 endmodule

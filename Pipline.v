@@ -52,8 +52,41 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
                     mux_redirected_regfile_data_a,     mux_redirected_regfile_data_a_reg,
                     mux_redirected_regfile_data_b,     mux_redirected_regfile_data_b_reg,
                     regfile_data_a,            regfile_data_a_reg,
-                    regfile_data_b,            regfile_data_b_reg
+                    regfile_data_b,            regfile_data_b_reg,
+                    initing,                   initing_reg,
+                    cp0_w_en,                  cp0_w_en_reg,
+                    cp0_w_data,                cp0_w_data_reg,
+                    cp0_data,                  cp0_data_reg
 );
+    input initing;
+    output reg initing_reg;
+    input [3:0] cp0_w_en;
+    output reg [3:0] cp0_w_en_reg;
+    input [3:0] cp0_w_data;
+    output reg [3:0] cp0_w_data_reg;
+    input [31:0] cp0_data;
+    output reg [31:0] cp0_data_reg;
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            initing_reg <= 0;
+            cp0_w_en_reg <= 0;
+            cp0_w_data_reg <= 0;
+            cp0_data_reg <= 0;
+        end
+        else if (!clr) begin
+            initing_reg <= 0;
+            cp0_w_en_reg <= 0;
+            cp0_w_data_reg <= 0;
+            cp0_data_reg <= 0;
+        end
+        else if (en) begin
+            initing_reg <= initing;
+            cp0_w_en_reg <= cp0_w_en;
+            cp0_w_data_reg <= cp0_w_data_reg;
+            cp0_data_reg <= cp0_data;
+        end
+    end
+
     input clk;
     input rst_n;
     input clr;
@@ -158,6 +191,7 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
 endmodule
 
 module Pipline_EX_DM(clk, rst_n, clr, en,
+                    pc,                         pc_reg,
                     alu_data_res,               alu_data_res_reg,
                     datamem_op,                 datamem_op_reg,
                     datamem_w_en,               datamem_w_en_reg,
@@ -166,7 +200,40 @@ module Pipline_EX_DM(clk, rst_n, clr, en,
                     regfile_req_w,              regfile_req_w_reg,
                     regfile_pre_data_w,         regfile_pre_data_w_reg,
                     mux_regfile_data_w,         mux_regfile_data_w_reg,
-                    halt,                       halt_reg);
+                    halt,                       halt_reg,
+                    initing,                    initing_reg,
+                    cp0_w_en,                   cp0_w_en_reg,
+                    cp0_w_data,                 cp0_w_data_reg
+);
+    input initing;
+    output reg initing_reg;
+    input [3:0] cp0_w_en;
+    output reg [3:0] cp0_w_en_reg;
+    input [3:0] cp0_w_data;
+    output reg [3:0] cp0_w_data_reg;
+    input [`IM_ADDR_BIT - 1:0] pc;
+    output reg [`IM_ADDR_BIT - 1:0] pc_reg;
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            pc_reg <= 0;
+            initing_reg <= 0;
+            cp0_w_en_reg <= 0;
+            cp0_w_data_reg <= 0;
+        end
+        else if (!clr) begin
+            pc_reg <= 0;
+            initing_reg <= 0;
+            cp0_w_en_reg <= 0;
+            cp0_w_data_reg <= 0;
+        end
+        else if (en) begin
+            pc_reg <= pc;
+            initing_reg <= initing;
+            cp0_w_en_reg <= cp0_w_en;
+            cp0_w_data_reg <= cp0_w_data_reg;
+        end
+    end
+
     input clk;
     input rst_n;
     input clr;
@@ -230,10 +297,44 @@ module Pipline_EX_DM(clk, rst_n, clr, en,
 endmodule
 
 module Pipline_DM_WB(clk, rst_n, clr, en,
-                    halt,           halt_reg,
-                    regfile_w_en,   regfile_w_en_reg,
-                    regfile_req_w,  regfile_req_w_reg,
-                    regfile_data_w, regfile_data_w_reg);
+                     pc,             pc_reg,
+                     halt,           halt_reg,
+                     regfile_w_en,   regfile_w_en_reg,
+                     regfile_req_w,  regfile_req_w_reg,
+                     regfile_data_w, regfile_data_w_reg,
+                     initing,        initing_reg,
+                     cp0_w_en,       cp0_w_en_reg,
+                     cp0_w_data,     cp0_w_data_reg
+);
+    input initing;
+    output reg initing_reg;
+    input [3:0] cp0_w_en;
+    output reg [3:0] cp0_w_en_reg;
+    input [3:0] cp0_w_data;
+    output reg [3:0] cp0_w_data_reg;
+    input [`IM_ADDR_BIT - 1:0] pc;
+    output reg [`IM_ADDR_BIT - 1:0] pc_reg;
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            pc_reg <= 0;
+            initing_reg <= 0;
+            cp0_w_en_reg <= 0;
+            cp0_w_data_reg <= 0;
+        end
+        else if (!clr) begin
+            pc_reg <= 0;
+            initing_reg <= 0;
+            cp0_w_en_reg <= 0;
+            cp0_w_data_reg <= 0;
+        end
+        else if (en) begin
+            pc_reg <= pc;
+            initing_reg <= initing;
+            cp0_w_en_reg <= cp0_w_en;
+            cp0_w_data_reg <= cp0_w_data_reg;
+        end
+    end
+
     input clk;
     input rst_n;
     input clr;
