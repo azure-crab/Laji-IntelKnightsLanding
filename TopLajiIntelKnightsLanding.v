@@ -8,9 +8,9 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n, int0, in
     // Laji-IntelKnightsLanding/test/
 //    parameter ProgPath = "F:/OneDrive/azure_projs/computer_organization_lab/proj/benchmark_ccmb.hex";
     parameter ProgPath = "C:/.Xilinx/benchmark_ccmb.hex";
-    parameter CoreClk0Cnt = `CNT_HZ(2);
-    parameter CoreClk1Cnt = `CNT_HZ(20);
-    parameter CoreClk2Cnt = `CNT_HZ(200);
+    parameter CoreClk0Cnt = `CNT_HZ(4);
+    parameter CoreClk1Cnt = `CNT_HZ(50);
+    parameter CoreClk2Cnt = `CNT_HZ(100);
     parameter CoreClk3Cnt = `CNT_MHZ(50);
     parameter DispClkCnt = `CNT_KHZ(2);
     input clk;

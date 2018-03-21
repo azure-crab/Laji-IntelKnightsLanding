@@ -157,11 +157,11 @@ module SynLajiIntelKnightsLanding(
         // for interrupt
         .cp0_w_en(cp0_w_en),
         .cp0_w_data(cp0_w_data),
-        .cp0_w_collision((|cp0_w_en_id_ex) || (|cp0_w_en_ex_dm)),
-        .int(int && !(inting_id_ex || inting_ex_dm)),                   // only get interrupt when no interrupt handling
+        .cp0_w_collision((|cp0_w_en_id_ex) || (|cp0_w_en_ex_dm) || (|cp0_w_en_dm_wb)),
+        .int(int && !(inting_id_ex || inting_ex_dm || inting_dm_wb)),                   // only get interrupt when no interrupt handling
         .ints(ints),
         .inting(inting),
-        .irs(irs),
+        .irs(irs[2:0]),
         .mux_cp0_data(mux_cp0_data)
     );
 

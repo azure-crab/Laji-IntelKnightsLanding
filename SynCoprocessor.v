@@ -36,7 +36,7 @@ module SynCoprocessor(
         epc_ <= 0;
     end
 
-    assign irs = {28'b0, ir_};
+    assign irs = {28'b0, irs_};
     assign ie = {31'b0, ie_};
     assign epc = epc_;
 
