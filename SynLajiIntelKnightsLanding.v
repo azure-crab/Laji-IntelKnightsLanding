@@ -131,7 +131,9 @@ module SynLajiIntelKnightsLanding(
     wire [31:0] irs;
     CmbControl vCtl(
         .opcode(opcode),
+        .rs(rs),
         .rt(rt),
+        .rd(rd),
         .funct(funct),
         .op_wtg(wtg_op),
         .w_en_regfile(regfile_w_en),
@@ -424,12 +426,14 @@ module SynLajiIntelKnightsLanding(
     always @(*) begin
         regfile_pre_data_w = alu_data_res;
         case (mux_regfile_pre_data_w_id_ex)
-            `MUX_RF_DATAW_PC4:
+            `MUX_RF_PRE_DATAW_PC4:
                 regfile_pre_data_w = {pc_4_id_ex, 2'b00};
-            `MUX_RF_DATAW_ALU:
+            `MUX_RF_PRE_DATAW_ALU:
                 regfile_pre_data_w = alu_data_res;
-            `MUX_RF_DATAW_CP0:
+            `MUX_RF_PRE_DATAW_CP0:
                 regfile_pre_data_w = cp0_data_id_ex;
+            `MUX_RF_PRE_DATAW_RFB:
+                regfile_pre_data_w = redirected_regfile_data_b;
             default: ;
         endcase
     end
@@ -535,7 +539,9 @@ module SynLajiIntelKnightsLanding(
         .inting_reg(inting_dm_wb)
         );
 // -------------------------------- WB ---------------------------------
-    assign epc_w_data = {{(30-`IM_ADDR_BIT){1'b0}}, pc_dm_wb,2'b00};
+    // if ie_w_en && epc_w_en, so it must be interrupt implicit instruction, so load pc, 
+    // else (!ie_w_en) must be user instruction, load regfile_data_w
+    assign epc_w_data = (ie_w_en) ? {{(30-`IM_ADDR_BIT){1'b0}}, pc_dm_wb,2'b00} : regfile_data_w_dm_wb;
     assign {irs_set_en, irs_clr_en, ie_w_en, epc_w_en} = cp0_w_en_dm_wb;
     assign {irs_w_mask, ie_w_data} = cp0_w_data_dm_wb;
     assign halted = halt_dm_wb;

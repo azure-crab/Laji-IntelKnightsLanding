@@ -95,11 +95,13 @@
 // Multiplexer.RegisterFile.pre_data_requested_to_write
 `define MUX_RF_PRE_DATAW_BIT    2
 // Output of ALU
-`define MUX_RF_DATAW_ALU    `MUX_RF_PRE_DATAW_BIT'h0
+`define MUX_RF_PRE_DATAW_ALU    `MUX_RF_PRE_DATAW_BIT'h0
 // PC + 4
-`define MUX_RF_DATAW_PC4    `MUX_RF_PRE_DATAW_BIT'h1
+`define MUX_RF_PRE_DATAW_PC4    `MUX_RF_PRE_DATAW_BIT'h1
 // cp0 data
-`define MUX_RF_DATAW_CP0    `MUX_RF_PRE_DATAW_BIT'h2
+`define MUX_RF_PRE_DATAW_CP0    `MUX_RF_PRE_DATAW_BIT'h2
+// rf.b data
+`define MUX_RF_PRE_DATAW_RFB    `MUX_RF_PRE_DATAW_BIT'h3
 
 // Multiplexer.RegisterFile.data_requested_to_write
 `define MUX_RF_DATAW_BIT    1

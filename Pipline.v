@@ -107,7 +107,6 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
     input datamem_w_en;
     input syscall_en;
     input [4:0] regfile_req_w;    // combinatorial
-    input [`MUX_RF_PRE]
     input [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     input [`MUX_RF_PRE_DATAW_BIT - 1:0] mux_regfile_pre_data_w;
     input [`MUX_EX_REDIR_DATAA_BIT - 1:0] mux_redirected_regfile_data_a; 
@@ -126,7 +125,7 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
     output reg syscall_en_reg;
     output reg [4:0] regfile_req_w_reg;    // combinatorial
     output reg [`MUX_RF_DATAW_BIT - 1:0]  mux_regfile_data_w_reg;
-    output reg [`MUX_RF_PRE_DATAW_BIT - 1:0] mux_regfile_pre_data_w_reg
+    output reg [`MUX_RF_PRE_DATAW_BIT - 1:0] mux_regfile_pre_data_w_reg;
     output reg [`MUX_EX_REDIR_DATAA_BIT - 1:0] mux_redirected_regfile_data_a_reg; 
     output reg [`MUX_EX_REDIR_DATAB_BIT - 1:0] mux_redirected_regfile_data_b_reg;
     output reg [31:0] regfile_data_a_reg, regfile_data_b_reg;

@@ -5,7 +5,7 @@
 // Brief: Control Module, synchronized
 // Author: FluorineDog
 module CmbControl(
-    opcode, rt, funct, 
+    opcode, rs, rt, rd, funct, 
     load_use, ex_collision_a, dm_collision_a, ex_collision_b, dm_collision_b, bubble,
     op_wtg, w_en_regfile, op_alu, op_datamem, w_en_datamem, syscall_en,
     mux_regfile_req_a, mux_regfile_req_b, mux_regfile_req_w,
@@ -16,7 +16,7 @@ module CmbControl(
     mux_cp0_data
 );
     input [5:0] opcode;
-    input [4:0] rt;
+    input [4:0] rs, rt, rd;
     input [5:0] funct;
     output reg [`WTG_OP_BIT - 1:0] op_wtg;
     output reg w_en_regfile;
@@ -25,7 +25,7 @@ module CmbControl(
     output reg w_en_datamem;
     output reg syscall_en;
     output [`MUX_RF_REQA_BIT - 1:0] mux_regfile_req_a;
-    output [`MUX_RF_REQB_BIT - 1:0] mux_regfile_req_b;    
+    output [`MUX_RF_REQB_BIT - 1:0] mux_regfile_req_b;
     output reg [`MUX_RF_REQW_BIT - 1:0] mux_regfile_req_w;
     output reg [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w;
     output reg [`MUX_ALU_DATAY_BIT - 1:0] mux_alu_data_y;
@@ -61,7 +61,7 @@ module CmbControl(
         w_en_datamem = 0;
         syscall_en = 0;
         mux_regfile_req_w = `MUX_RF_REQW_RT;
-        mux_regfile_pre_data_w = `MUX_RF_DATAW_ALU;
+        mux_regfile_pre_data_w = `MUX_RF_PRE_DATAW_ALU;
         mux_regfile_data_w = `MUX_RF_DATAW_EX;
         mux_alu_data_y = `MUX_ALU_DATAY_EXTS;
         // for redirect
@@ -73,6 +73,7 @@ module CmbControl(
         else if (dm_collision_b) mux_redirected_regfile_data_b = `MUX_EX_REDIR_B_DM;
         // for interrupt
         inting = 0;
+        mux_cp0_data = 0;
         cp0_w_en = 0;
         cp0_w_data = 0;
 
@@ -120,7 +121,7 @@ module CmbControl(
             6'b000010:  begin   op_wtg = `WTG_OP_J26;  w_en_regfile = 0; end    // j
             6'b000011:  begin   op_wtg = `WTG_OP_J26;                           // jal
                 mux_regfile_req_w = `MUX_RF_REQW_31;
-                mux_regfile_pre_data_w = `MUX_RF_DATAW_PC4;
+                mux_regfile_pre_data_w = `MUX_RF_PRE_DATAW_PC4;
                 mux_regfile_data_w = `MUX_RF_DATAW_EX;
             end
             6'b000100:  begin   op_wtg = `WTG_OP_BEQ;  w_en_regfile = 0; end    // beq
@@ -159,7 +160,22 @@ module CmbControl(
                         else if (irs[0])    cp0_w_data = {3'b110, 1'b1};
                         else                cp0_w_data = {3'b000, 1'b1};
                     end
-                    3'b000: ;
+                    3'b000: begin
+                        // if (rs == 5'b00100) begin         // mtc0
+                        //     cp0_w_en = rd[3:0];           // 'b10: ie, 'b01: epc {irs_set_en, irs_clr_en, ie_w_en, epc_w_en}
+                        //     cp0_w_data = {3'b000, rt[0]}; // {irs_w_mask, ie_w_data}
+                        //     mux_regfile_pre_data_w = `MUX_RF_PRE_DATAW_RFB;
+                        // end
+                        // else if (rs == 5'b00000) begin // mfc0
+                        //     if (rd == 5'b10) mux_cp0_data = `MUX_CP0_DATA_IE;
+                        //     else if (rd == 5'b01) mux_cp0_data = `MUX_CP0_DATA_EPC;
+                        //     w_en_regfile = 1;
+                        //     mux_regfile_req_w = `MUX_RF_REQW_RT;
+                        //     mux_regfile_pre_data_w = `MUX_RF_PRE_DATAW_CP0;
+                        //     mux_regfile_data_w = `MUX_RF_DATAW_EX;
+                        // end
+                    end
+                    default : ;
                 endcase
             end
         endcase

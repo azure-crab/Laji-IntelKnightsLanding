@@ -26,8 +26,10 @@ module SynRegFile(
     assign data_a = req_a == 0 ? 32'd0 : regs[req_a];
     assign data_b = req_b == 0 ? 32'd0 : regs[req_b];
 
-    always @(negedge clk) begin
-        if (en && w_en && req_w != 5'd0)
+    always @(negedge clk, negedge rst_n) begin
+        if (!rst_n)
+            regs[5'd29] <= 0;
+        else if (en && w_en && req_w != 5'd0)
             regs[req_w] <= data_w;
     end
 endmodule
