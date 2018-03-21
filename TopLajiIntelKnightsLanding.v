@@ -202,8 +202,8 @@ module TopLajiIntelKnightsLanding(clk, rst_n, resume, swt, seg_n, an_n, int0, in
         .load_use(core_load_use), 
         .bht_hit(core_bht_hit),
         .bht_failed(core_bht_failed),
-        .int0(),
-        .int1(),
-        .int2()
+        .int0(int0),
+        .int1(int1),
+        .int2(int2)
     );
 endmodule

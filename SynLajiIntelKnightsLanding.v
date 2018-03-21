@@ -30,6 +30,7 @@ module SynLajiIntelKnightsLanding(
     wire [31:0] inst;
     wire [`IM_ADDR_BIT - 1:0] g_addr;   // from wtg
     wire isbj = jumped || is_branch;
+    wire jinted;
     reg bht_failed;
     
     always @(*) begin
@@ -38,7 +39,7 @@ module SynLajiIntelKnightsLanding(
             bht_failed = g_addr != pc_if_id;
         else if (isbj)
             bht_failed = pc_4_id_ex != pc_if_id;
-        // 中断时增加对中断跳转地址预测是否成功的判断，但注意不要修改isbj
+        // ?????????????????????????????isbj
     end
     
     SynPC vPC(
@@ -46,12 +47,12 @@ module SynLajiIntelKnightsLanding(
         .rst_n(rst_n),
         .en(en),
         .stall(bubble || halt),
-        .isbj(isbj),                    // 是否为跳转指令，控制对BHT的写入
-        .gone(jumped || branched),      // 即此处是否发生了跳转/分支，如果发生了，则正确的pc应该为g_addr，否则为s_addr
-        .succeed(!bht_failed),          // BHT预测是否正确
-        .pc_before_g(pc_id_ex),         // WTG传递过来，跳转指令的地址，用于更新BHT
-        .g_addr(g_addr),                // 跳转如果成立则要跳到的地址
-        .s_addr(pc_4_id_ex),            // 如果不成立要继续的地址
+        .isbj(isbj),                         // ???????????BHT???
+        .gone(jumped || branched || jinted), // ??????????/?????????????pc???g_addr????s_addr
+        .keep_pc(!(bht_failed || jinted)),   // ????????pc?BHT??????/?????jint
+        .pc_before_g(pc_id_ex),              // WTG?????????????????BHT
+        .g_addr(g_addr),                     // ?????????????
+        .s_addr(pc_4_id_ex),                 // ???????????
         .bht_hit(bht_hit),
         .pc(pc),
         .pc_4(pc_4)
@@ -71,7 +72,7 @@ module SynLajiIntelKnightsLanding(
     Pipline_IF_ID pp_IF_ID(  
         .clk(clk),
         .rst_n(rst_n),
-        .clr(!bht_failed),
+        .clr(!(bht_failed || jinted)),
         .en(en),
         .stall(bubble || halt),
         .pc_4(pc_4),
@@ -292,10 +293,11 @@ module SynLajiIntelKnightsLanding(
     wire [31:0] regfile_data_a_id_ex, regfile_data_b_id_ex;
     wire [3:0] cp0_w_data_id_ex;
     wire [31:0] cp0_data_id_ex;
+    wire [2:0] ints_id_ex;
     Pipline_ID_EX pp_ID_EX( 
         .clk(clk), 
         .rst_n(rst_n),
-        .clr(!(bht_failed || bubble || halt)),
+        .clr(!(bht_failed || jinted || bubble || halt)),
         .en(en),
         .pc(pc_if_id),
         .pc_reg(pc_id_ex),
@@ -340,7 +342,9 @@ module SynLajiIntelKnightsLanding(
         .cp0_w_data(cp0_w_data),
         .cp0_w_data_reg(cp0_w_data_id_ex),
         .cp0_data(cp0_data),
-        .cp0_data_reg(cp0_data_id_ex)
+        .cp0_data_reg(cp0_data_id_ex),
+        .ints(ints),
+        .ints_reg(ints_id_ex)
 );
 // -------------------------------- EX ---------------------------------
     reg [31:0] redirected_regfile_data_a, redirected_regfile_data_b;
@@ -376,7 +380,10 @@ module SynLajiIntelKnightsLanding(
         .pc_new(g_addr),
         .jumped(jumped),
         .is_branch(is_branch),
-        .branched(branched)
+        .branched(branched),
+        .jinted(jinted),
+        .ints(ints_id_ex),
+        .epc(epc)
     );
     
     reg [31:0] alu_data_y;      // combinatorial

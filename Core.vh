@@ -16,6 +16,10 @@
 `define WTG_OP_BEQ          `WTG_OP_BIT'h3      
 `define WTG_OP_BNE          `WTG_OP_BIT'h4
 `define WTG_OP_BLTZ         `WTG_OP_BIT'h5
+// for interrupt handling
+`define WTG_OP_JINT         `WTG_OP_BIT'h6
+`define WTG_OP_ERET         `WTG_OP_BIT'h7
+
 // instructions that is extinceted
 // `define WTG_OP_BLEZ         `WTG_OP_BIT'h5
 // `define WTG_OP_BGTZ         `WTG_OP_BIT'h6
@@ -112,5 +116,14 @@
 `define MUX_ALU_DATAY_EXTS  `MUX_ALU_DATAY_BIT'h1
 // Zero-extended imm16
 `define MUX_ALU_DATAY_EXTZ  `MUX_ALU_DATAY_BIT'h2
+
+// benchmark
+`define START_UP `IM_ADDR_BIT'h0000
+
+// interrupt addr
+// remember to divde 4 first
+`define INT_VEC1 `IM_ADDR_BIT'h0000
+`define INT_VEC3 `IM_ADDR_BIT'h0000
+`define INT_VEC2 `IM_ADDR_BIT'h0000
 
 `endif

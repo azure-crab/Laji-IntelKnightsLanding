@@ -41,10 +41,10 @@ module SynCoprocessor(
     end
     assign int = ie && |(inm & ir_);
     always @(*) begin
-        ints = 2'd0;
-        if (ir_[2]) ints = 2'd3;
-        else if (ir_[1]) ints = 2'd2;
-        else if (ir_[0]) ints = 2'd1;
+        ints = 3'd0;
+        if (ir_[2]) ints = 3'd3;
+        else if (ir_[1]) ints = 3'd2;
+        else if (ir_[0]) ints = 3'd1;
     end
 
     always @(negedge clk, negedge rst_n) begin

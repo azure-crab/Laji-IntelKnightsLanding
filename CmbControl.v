@@ -51,9 +51,19 @@ module CmbControl(
     assign mux_regfile_req_b = syscall_en;
 
     // bubble
-    assign bubble = load_use;
+    assign bubble = load_use || ( (int || (op_alu == `WTG_OP_ERET)) && cp0_w_collision);
 
     always@(*) begin
+        op_wtg = `WTG_OP_NOP;
+        op_alu = `ALU_OP_AND;
+        op_datamem = `DM_OP_WD;  
+        w_en_regfile = 1;
+        w_en_datamem = 0;
+        syscall_en = 0;
+        mux_regfile_req_w = `MUX_RF_REQW_RT;
+        mux_regfile_pre_data_w = `MUX_RF_DATAW_ALU;
+        mux_regfile_data_w = `MUX_RF_DATAW_EX;
+        mux_alu_data_y = `MUX_ALU_DATAY_EXTS;
         // for redirect
         mux_redirected_regfile_data_a = `MUX_EX_REDIR_A_OLD;
         mux_redirected_regfile_data_b = `MUX_EX_REDIR_B_OLD;
@@ -61,18 +71,10 @@ module CmbControl(
         else if (dm_collision_a) mux_redirected_regfile_data_a = `MUX_EX_REDIR_A_DM;
         if (ex_collision_b) mux_redirected_regfile_data_b = `MUX_EX_REDIR_B_EX;
         else if (dm_collision_b) mux_redirected_regfile_data_b = `MUX_EX_REDIR_B_DM;
+        // for interrupt
+        inting = 0;
+        cp0_w_en = 0;
 
-        op_wtg = `WTG_OP_NOP;
-        op_alu = `ALU_OP_AND;
-        op_datamem = `DM_OP_WD;  
-        w_en_regfile = 1;
-        w_en_datamem = 0;
-        syscall_en = 0;
-
-        mux_regfile_req_w = `MUX_RF_REQW_RT;
-        mux_regfile_pre_data_w = `MUX_RF_DATAW_ALU;
-        mux_regfile_data_w = `MUX_RF_DATAW_EX;
-        mux_alu_data_y = `MUX_ALU_DATAY_EXTS;
         case(opcode)
             6'b000000:  begin 
                 mux_regfile_req_w   = `MUX_RF_REQW_RD;
@@ -145,6 +147,33 @@ module CmbControl(
             6'b101000:  begin   op_alu = `ALU_OP_ADD; op_datamem = `DM_OP_SB; w_en_datamem = 1; w_en_regfile = 0; end       // sb
             6'b101001:  begin   op_alu = `ALU_OP_ADD; op_datamem = `DM_OP_SH; w_en_datamem = 1; w_en_regfile = 0; end       // sh
             6'b101011:  begin   op_alu = `ALU_OP_ADD; op_datamem = `DM_OP_WD; w_en_datamem = 1; w_en_regfile = 0; end       // sw
-          endcase
+
+            // COP0 opcode
+            6'b010000:  begin
+                case(funct[5:3])
+                    3'b011: begin 
+                        op_alu = `WTG_OP_ERET; inting = 1; cp0_w_en = 4'b0110;
+                        if (irs[2])         cp0_w_data = {3'b011, 1'b1};
+                        else if (irs[1])    cp0_w_data = {3'b101, 1'b1};
+                        else if (irs[0])    cp0_w_data = {3'b110, 1'b1};
+                        else                cp0_w_data = {3'b000, 1'b1};
+                    end
+                    3'b000: ;
+                endcase
+            end
+        endcase
+        
+        // handle interrupt
+        if (int) begin
+            op_wtg = `WTG_OP_JINT;
+            inting = 1;
+            cp0_w_en = 4'b1011;
+            case (ints)
+                3'd1:       cp0_w_data = {3'b001, 1'b0};
+                3'd2:       cp0_w_data = {3'b010, 1'b0};
+                3'd3:       cp0_w_data = {3'b100, 1'b0};
+                default:    cp0_w_data = {3'b000, 1'b1};
+            endcase
+        end
       end
 endmodule

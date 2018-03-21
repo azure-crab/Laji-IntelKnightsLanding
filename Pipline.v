@@ -56,7 +56,8 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
                     initing,                   initing_reg,
                     cp0_w_en,                  cp0_w_en_reg,
                     cp0_w_data,                cp0_w_data_reg,
-                    cp0_data,                  cp0_data_reg
+                    cp0_data,                  cp0_data_reg,
+                    ints,                      ints_reg
 );
     input initing;
     output reg initing_reg;
@@ -66,24 +67,29 @@ module Pipline_ID_EX(clk, rst_n, clr, en,
     output reg [3:0] cp0_w_data_reg;
     input [31:0] cp0_data;
     output reg [31:0] cp0_data_reg;
+    input [2:0] ints;
+    output reg [2:0] ints_reg;
     always @(posedge clk) begin
         if (!rst_n) begin
             initing_reg <= 0;
             cp0_w_en_reg <= 0;
             cp0_w_data_reg <= 0;
             cp0_data_reg <= 0;
+            ints_reg <= 0;
         end
         else if (!clr) begin
             initing_reg <= 0;
             cp0_w_en_reg <= 0;
             cp0_w_data_reg <= 0;
             cp0_data_reg <= 0;
+            ints_reg <= 0;
         end
         else if (en) begin
             initing_reg <= initing;
             cp0_w_en_reg <= cp0_w_en;
             cp0_w_data_reg <= cp0_w_data_reg;
             cp0_data_reg <= cp0_data;
+            ints_reg <= ints;
         end
     end
 

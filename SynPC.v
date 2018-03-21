@@ -7,7 +7,7 @@
 // Modified by: AzureCrab
 module SynPC(clk, rst_n, en, 
              stall, isbj, gone,
-             succeed, pc_before_g,
+             keep_pc, pc_before_g,
              g_addr, s_addr, 
              bht_hit, pc, pc_4);
     input clk;
@@ -16,13 +16,15 @@ module SynPC(clk, rst_n, en,
     input stall;
     input isbj;
     input gone;
-    input succeed;
+    input keep_pc;
     input [`IM_ADDR_BIT - 1:0] pc_before_g;
     input [`IM_ADDR_BIT - 1:0] g_addr, s_addr;
     output bht_hit;
     output reg [`IM_ADDR_BIT - 1:0] pc;
     output [`IM_ADDR_BIT - 1:0] pc_4;
     assign pc_4 = pc + 1;
+
+    initial pc <= `START_UP;
 
     wire [`IM_ADDR_BIT - 1:0] pc_BHT;
     SynBHT vBHT(
@@ -32,7 +34,7 @@ module SynPC(clk, rst_n, en,
         .PC(pc),
         .PC_4(pc_4),
         .w_en(isbj),
-        .succeed(succeed),
+        .succeed(keep_pc),
         .pc_before_g(pc_before_g),
         .g_addr(g_addr),
         .hit(bht_hit),
@@ -43,7 +45,7 @@ module SynPC(clk, rst_n, en,
         if (!rst_n)
    		    pc <= 0;
    	    else if (en)
-            if (!succeed)
+            if (!keep_pc)
    		        pc <= (gone) ? g_addr : s_addr;
             else if (!stall)
                 pc <= pc_BHT[`IM_ADDR_BIT - 1:0];
