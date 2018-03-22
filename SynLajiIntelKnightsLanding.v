@@ -217,7 +217,8 @@ module SynLajiIntelKnightsLanding(
     wire [4:0] regfile_req_w_id_ex;
     wire regfile_w_en_ex_dm;
     wire [4:0] regfile_req_w_ex_dm;
-    wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_pre_data_w_id_ex, mux_regfile_data_w_id_ex;
+    wire [`MUX_RF_PRE_DATAW_BIT - 1:0] mux_regfile_pre_data_w_id_ex;
+    wire [`MUX_RF_DATAW_BIT - 1:0] mux_regfile_data_w_id_ex;
     assign ex_collision_a = regfile_w_en_id_ex && (regfile_req_w_id_ex != 0) && (regfile_req_w_id_ex == regfile_req_a);
     assign ex_collision_b = regfile_w_en_id_ex && (regfile_req_w_id_ex != 0) && (regfile_req_w_id_ex == regfile_req_b);
     assign dm_collision_a = regfile_w_en_ex_dm && (regfile_req_w_ex_dm != 0) && (regfile_req_w_ex_dm == regfile_req_a);

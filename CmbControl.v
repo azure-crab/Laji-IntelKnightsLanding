@@ -51,7 +51,7 @@ module CmbControl(
     assign mux_regfile_req_b = syscall_en;
 
     // bubble
-    assign bubble = load_use || ( (int || (op_alu == `WTG_OP_ERET)) && cp0_w_collision);
+    assign bubble = load_use || ( (int || (op_alu == `WTG_OP_ERET) || (mux_regfile_pre_data_w == `MUX_RF_PRE_DATAW_RFB)) && cp0_w_collision);
 
     always@(*) begin
         op_wtg = `WTG_OP_NOP;
@@ -161,19 +161,19 @@ module CmbControl(
                         else                cp0_w_data = {3'b000, 1'b1};
                     end
                     3'b000: begin
-                        // if (rs == 5'b00100) begin         // mtc0
-                        //     cp0_w_en = rd[3:0];           // 'b10: ie, 'b01: epc {irs_set_en, irs_clr_en, ie_w_en, epc_w_en}
-                        //     cp0_w_data = {3'b000, rt[0]}; // {irs_w_mask, ie_w_data}
-                        //     mux_regfile_pre_data_w = `MUX_RF_PRE_DATAW_RFB;
-                        // end
-                        // else if (rs == 5'b00000) begin // mfc0
-                        //     if (rd == 5'b10) mux_cp0_data = `MUX_CP0_DATA_IE;
-                        //     else if (rd == 5'b01) mux_cp0_data = `MUX_CP0_DATA_EPC;
-                        //     w_en_regfile = 1;
-                        //     mux_regfile_req_w = `MUX_RF_REQW_RT;
-                        //     mux_regfile_pre_data_w = `MUX_RF_PRE_DATAW_CP0;
-                        //     mux_regfile_data_w = `MUX_RF_DATAW_EX;
-                        // end
+                        if (rs == 5'b00100) begin         // mtc0
+                            cp0_w_en = rd[3:0];           // 'b10: ie, 'b01: epc {irs_set_en, irs_clr_en, ie_w_en, epc_w_en}
+                            cp0_w_data = {3'b000, rt[0]}; // {irs_w_mask, ie_w_data}
+                            mux_regfile_pre_data_w = `MUX_RF_PRE_DATAW_RFB;
+                        end
+                        else if (rs == 5'b00000) begin // mfc0
+                            if (rd == 5'b10) mux_cp0_data = `MUX_CP0_DATA_IE;
+                            else if (rd == 5'b01) mux_cp0_data = `MUX_CP0_DATA_EPC;
+                            w_en_regfile = 1;
+                            mux_regfile_req_w = `MUX_RF_REQW_RT;
+                            mux_regfile_pre_data_w = `MUX_RF_PRE_DATAW_CP0;
+                            mux_regfile_data_w = `MUX_RF_DATAW_EX;
+                        end
                     end
                     default : ;
                 endcase
